@@ -24,14 +24,20 @@ export async function GET(req: NextRequest) {
   const lng = parseFloat(req.nextUrl.searchParams.get("lng") || "0");
   if (!lat || !lng) return NextResponse.json({ error: "Missing lat/lng" }, { status: 400 });
 
-  const radius = 1200; // 1.2km search radius
+  const radius = 1200; // 1.2km for most amenities
+  const trainRadius = 3000; // 3km for train/metro stations
 
   // Overpass query for multiple amenity types
   const query = `
     [out:json][timeout:15];
     (
-      node["railway"="station"](around:${radius},${lat},${lng});
-      node["railway"="halt"](around:${radius},${lat},${lng});
+      node["railway"="station"](around:${trainRadius},${lat},${lng});
+      way["railway"="station"](around:${trainRadius},${lat},${lng});
+      node["railway"="halt"](around:${trainRadius},${lat},${lng});
+      node["railway"="stop"]["train"="yes"](around:${trainRadius},${lat},${lng});
+      node["railway"="stop"]["subway"="yes"](around:${trainRadius},${lat},${lng});
+      node["railway"="stop"]["light_rail"="yes"](around:${trainRadius},${lat},${lng});
+      node["station"="subway"](around:${trainRadius},${lat},${lng});
       node["highway"="bus_stop"](around:${radius},${lat},${lng});
       node["amenity"="school"](around:${radius},${lat},${lng});
       way["amenity"="school"](around:${radius},${lat},${lng});
@@ -68,8 +74,8 @@ export async function GET(req: NextRequest) {
     const categorize = (el: Record<string, unknown>): { type: string; name: string } | null => {
       const tags = el.tags as Record<string, string> | undefined;
       if (!tags) return null;
-      if (tags.railway === "station" || tags.railway === "halt")
-        return { type: "train", name: tags.name || "Train Station" };
+      if (tags.railway === "station" || tags.railway === "halt" || (tags.railway === "stop" && (tags.train === "yes" || tags.subway === "yes" || tags.light_rail === "yes")) || tags.station === "subway")
+        return { type: "train", name: tags.name || "Train/Metro Station" };
       if (tags.highway === "bus_stop")
         return { type: "bus", name: tags.name || "Bus Stop" };
       if (tags.amenity === "school")
@@ -106,9 +112,19 @@ export async function GET(req: NextRequest) {
     // Sort by distance within each category
     amenities.sort((a, b) => a.distance - b.distance);
 
+    // Deduplicate by name within each type (OSM often has multiple nodes for same station)
+    const deduped: AmenityResult[] = [];
+    const seenKeys = new Set<string>();
+    for (const a of amenities) {
+      const key = `${a.type}:${a.name}`;
+      if (seenKeys.has(key)) continue;
+      seenKeys.add(key);
+      deduped.push(a);
+    }
+
     // Group by type
     const grouped: Record<string, AmenityResult[]> = {};
-    for (const a of amenities) {
+    for (const a of deduped) {
       if (!grouped[a.type]) grouped[a.type] = [];
       grouped[a.type].push(a);
     }
@@ -123,9 +139,10 @@ export async function GET(req: NextRequest) {
     const dining = grouped.dining || [];
 
     let score = 0;
-    // Train within 800m = huge bonus
-    if (trainStations.length > 0 && trainStations[0].distance <= 800) score += 3;
-    else if (trainStations.length > 0 && trainStations[0].distance <= 1200) score += 1.5;
+    // Train within 1km = huge bonus, within 2km = good, within 3km = ok
+    if (trainStations.length > 0 && trainStations[0].distance <= 1000) score += 3;
+    else if (trainStations.length > 0 && trainStations[0].distance <= 2000) score += 2;
+    else if (trainStations.length > 0 && trainStations[0].distance <= 3000) score += 1;
     // Bus stops
     if (busStops.length >= 5) score += 1.5;
     else if (busStops.length >= 2) score += 1;

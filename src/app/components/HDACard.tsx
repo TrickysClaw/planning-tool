@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Building2, ChevronDown, ChevronUp } from "lucide-react";
+import { Building2, ChevronDown, ChevronUp, ExternalLink, MapPin } from "lucide-react";
 
 interface HDAProject {
   eoi_number: string;
@@ -11,6 +11,9 @@ interface HDAProject {
   type: string;
   dwellings: number | null;
   recommendation: string;
+  description?: string;
+  briefingUrl?: string;
+  coords?: { lat: number; lng: number } | null;
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -18,15 +21,32 @@ const TYPE_COLORS: Record<string, string> = {
   "Mixed-use": "bg-purple-500/20 text-purple-300",
   "Build-to-Rent": "bg-cyan-500/20 text-cyan-300",
   Commercial: "bg-amber-500/20 text-amber-300",
+  Subdivision: "bg-orange-500/20 text-orange-300",
+  "Seniors housing": "bg-pink-500/20 text-pink-300",
 };
 
 const REC_COLORS: Record<string, string> = {
   "Declare SSD": "bg-emerald-500/20 text-emerald-300",
   "Not Declare": "bg-red-500/20 text-red-300",
   Deferred: "bg-yellow-500/20 text-yellow-300",
+  "Existing SSD pathway": "bg-blue-500/20 text-blue-300",
+  Withdrawn: "bg-slate-500/20 text-slate-300",
 };
 
-export default function HDACard({ address }: { address: string }) {
+function recColor(rec: string): string {
+  for (const [key, val] of Object.entries(REC_COLORS)) {
+    if (rec.includes(key)) return val;
+  }
+  return "bg-slate-500/20 text-slate-300";
+}
+
+export default function HDACard({
+  address,
+  onProjects,
+}: {
+  address: string;
+  onProjects?: (projects: HDAProject[]) => void;
+}) {
   const [projects, setProjects] = useState<HDAProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
@@ -37,11 +57,13 @@ export default function HDACard({ address }: { address: string }) {
     fetch(`/api/hda?address=${encodeURIComponent(address)}`)
       .then((r) => r.json())
       .then((d) => {
-        setProjects(d.projects || []);
+        const p = d.projects || [];
+        setProjects(p);
+        onProjects?.(p);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [address]);
+  }, [address, onProjects]);
 
   if (loading) {
     return (
@@ -73,36 +95,62 @@ export default function HDACard({ address }: { address: string }) {
       transition={{ delay: 0.5 }}
       className="glass-card col-span-1 md:col-span-2"
     >
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-2">
         <Building2 className="text-emerald-400" size={20} />
         <h3 className="font-semibold text-white text-lg">Nearby Housing Projects (HDA)</h3>
         {projects.length > 0 && (
           <span className="ml-auto text-xs text-slate-400">{projects.length} found</span>
         )}
       </div>
+      <p className="text-xs text-slate-500 mb-4">
+        Housing Delivery Authority EOIs — proposals reviewed for State Significant Development fast-tracking
+      </p>
 
       {projects.length === 0 ? (
         <p className="text-sm text-slate-400">No HDA projects found near this address</p>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {visible.map((p) => (
             <div
               key={p.eoi_number}
-              className="flex flex-wrap items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/[0.05] text-sm"
+              className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]"
             >
-              <span className="text-xs text-slate-500 w-16 flex-shrink-0">{p.eoi_number}</span>
-              <span className="text-slate-300 truncate flex-1 min-w-0" title={p.address}>
-                {p.address.length > 50 ? p.address.slice(0, 50) + "…" : p.address}
-              </span>
-              <span className={`px-2 py-0.5 rounded text-xs ${TYPE_COLORS[p.type] || "bg-slate-500/20 text-slate-300"}`}>
-                {p.type || "Unknown"}
-              </span>
-              {p.dwellings != null && (
-                <span className="text-xs text-slate-400">{p.dwellings} dwl</span>
+              <div className="flex flex-wrap items-start gap-2 mb-1.5">
+                <span className="text-xs text-slate-500 font-mono">EOI {p.eoi_number}</span>
+                <span className={`px-2 py-0.5 rounded text-xs ${TYPE_COLORS[p.type] || "bg-slate-500/20 text-slate-300"}`}>
+                  {p.type || "Unknown"}
+                </span>
+                {p.dwellings != null && (
+                  <span className="text-xs text-slate-400">🏠 {p.dwellings.toLocaleString()} dwellings</span>
+                )}
+                <span className={`px-2 py-0.5 rounded text-xs ${recColor(p.recommendation)}`}>
+                  {p.recommendation || "—"}
+                </span>
+              </div>
+
+              <div className="flex items-start gap-1.5 mb-1.5">
+                <MapPin size={12} className="text-slate-500 mt-0.5 flex-shrink-0" />
+                <span className="text-sm text-slate-300">{p.address}</span>
+              </div>
+
+              {p.description && (
+                <p className="text-xs text-slate-400 mb-2 leading-relaxed">{p.description}</p>
               )}
-              <span className={`px-2 py-0.5 rounded text-xs ${REC_COLORS[p.recommendation] || "bg-slate-500/20 text-slate-300"}`}>
-                {p.recommendation || "—"}
-              </span>
+
+              <div className="flex items-center gap-3 text-xs">
+                <span className="text-slate-500">Briefed: {p.briefing_date}</span>
+                {p.briefingUrl && (
+                  <a
+                    href={p.briefingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 transition"
+                  >
+                    <ExternalLink size={10} />
+                    View HDA Record
+                  </a>
+                )}
+              </div>
             </div>
           ))}
         </div>

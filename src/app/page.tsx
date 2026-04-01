@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import SearchBar from "./components/SearchBar";
 import ReportCard from "./components/ReportCard";
@@ -7,6 +7,7 @@ import ConnectivityCard from "./components/ConnectivityCard";
 import PerceptionCard from "./components/PerceptionCard";
 import HDACard from "./components/HDACard";
 import PlanningMap from "./components/PlanningMap";
+import type { MapMarker } from "./components/PlanningMap";
 import { Loader2, BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned } from "lucide-react";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -96,6 +97,23 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [hdaMarkers, setHdaMarkers] = useState<MapMarker[]>([]);
+
+  const handleHDAProjects = useCallback((projects: any[]) => {
+    const markers: MapMarker[] = projects
+      .filter((p: any) => p.coords)
+      .map((p: any) => ({
+        lat: p.coords.lat,
+        lng: p.coords.lng,
+        label: `EOI ${p.eoi_number}: ${p.address}${p.dwellings ? ` (${p.dwellings} dwl)` : ""}`,
+        type: p.recommendation?.includes("Declare SSD")
+          ? "hda-declared" as const
+          : p.recommendation?.includes("Deferred")
+          ? "hda-deferred" as const
+          : "hda-not-declared" as const,
+      }));
+    setHdaMarkers(markers);
+  }, []);
 
   async function handleSelect(r: { display_name: string; lat: string; lon: string }) {
     const lat = parseFloat(r.lat);
@@ -149,12 +167,12 @@ export default function Home() {
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <ConnectivityCard lat={coords.lat} lng={coords.lng} />
               <PerceptionCard address={data.address} />
-              <HDACard address={data.address} />
+              <HDACard address={data.address} onProjects={handleHDAProjects} />
             </div>
           )}
           {coords && (
             <div className="max-w-6xl mx-auto">
-              <PlanningMap lat={coords.lat} lng={coords.lng} />
+              <PlanningMap lat={coords.lat} lng={coords.lng} markers={hdaMarkers} />
             </div>
           )}
         </motion.div>

@@ -1,12 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
+import { STATIONS } from "../../data/stations";
+import * as fs from "fs";
+import * as path from "path";
 
-// Overpass API — query nearby amenities within a radius
-// Multiple Overpass endpoints for failover
 const OVERPASS_URLS = [
   "https://overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
   "https://overpass.openstreetmap.ru/api/interpreter",
 ];
+
+const CACHE_DIR = "/tmp/connectivity-cache";
+const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+function getCachePath(lat: number, lng: number): string {
+  return path.join(CACHE_DIR, `${Math.round(lat * 1000)}_${Math.round(lng * 1000)}.json`);
+}
+
+function readCache(lat: number, lng: number): Record<string, unknown> | null {
+  try {
+    const fp = getCachePath(lat, lng);
+    const stat = fs.statSync(fp);
+    if (Date.now() - stat.mtimeMs > CACHE_TTL) return null;
+    return JSON.parse(fs.readFileSync(fp, "utf-8"));
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(lat: number, lng: number, data: Record<string, unknown>) {
+  try {
+    fs.mkdirSync(CACHE_DIR, { recursive: true });
+    fs.writeFileSync(getCachePath(lat, lng), JSON.stringify(data));
+  } catch { /* ignore */ }
+}
 
 async function fetchOverpass(query: string): Promise<Record<string, unknown>> {
   for (const url of OVERPASS_URLS) {
@@ -22,7 +48,7 @@ async function fetchOverpass(query: string): Promise<Record<string, unknown>> {
       clearTimeout(timeout);
       if (!res.ok) continue;
       const text = await res.text();
-      if (text.startsWith("<")) continue; // HTML error page
+      if (text.startsWith("<")) continue;
       return JSON.parse(text);
     } catch {
       continue;
@@ -47,25 +73,33 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number): numb
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+function getStaticTrainStations(lat: number, lng: number): AmenityResult[] {
+  const results: AmenityResult[] = [];
+  for (const s of STATIONS) {
+    const dist = Math.round(haversine(lat, lng, s.lat, s.lng));
+    if (dist <= 3000) {
+      const label = s.type === "metro" ? "Metro" : s.type === "light_rail" ? "Light Rail" : "Train";
+      results.push({ type: "train", name: `${s.name} (${label})`, distance: dist });
+    }
+  }
+  results.sort((a, b) => a.distance - b.distance);
+  return results;
+}
+
 export async function GET(req: NextRequest) {
   const lat = parseFloat(req.nextUrl.searchParams.get("lat") || "0");
   const lng = parseFloat(req.nextUrl.searchParams.get("lng") || "0");
   if (!lat || !lng) return NextResponse.json({ error: "Missing lat/lng" }, { status: 400 });
 
-  const radius = 1200; // 1.2km for most amenities
-  const trainRadius = 3000; // 3km for train/metro stations
+  const radius = 1200;
 
-  // Overpass query for multiple amenity types
+  // Static train data (always available)
+  const trainStations = getStaticTrainStations(lat, lng);
+
+  // Overpass query for non-train amenities
   const query = `
     [out:json][timeout:15];
     (
-      node["railway"="station"](around:${trainRadius},${lat},${lng});
-      way["railway"="station"](around:${trainRadius},${lat},${lng});
-      node["railway"="halt"](around:${trainRadius},${lat},${lng});
-      node["railway"="stop"]["train"="yes"](around:${trainRadius},${lat},${lng});
-      node["railway"="stop"]["subway"="yes"](around:${trainRadius},${lat},${lng});
-      node["railway"="stop"]["light_rail"="yes"](around:${trainRadius},${lat},${lng});
-      node["station"="subway"](around:${trainRadius},${lat},${lng});
       node["highway"="bus_stop"](around:${radius},${lat},${lng});
       node["amenity"="school"](around:${radius},${lat},${lng});
       way["amenity"="school"](around:${radius},${lat},${lng});
@@ -85,38 +119,26 @@ export async function GET(req: NextRequest) {
     out center;
   `;
 
-  try {
-    const data = await fetchOverpass(query);
-    const elements = (data.elements || []) as Record<string, unknown>[];
+  let overpassFailed = false;
+  let amenities: AmenityResult[] = [];
 
-    const categorize = (el: Record<string, unknown>): { type: string; name: string } | null => {
-      const tags = el.tags as Record<string, string> | undefined;
-      if (!tags) return null;
-      if (tags.railway === "station" || tags.railway === "halt" || (tags.railway === "stop" && (tags.train === "yes" || tags.subway === "yes" || tags.light_rail === "yes")) || tags.station === "subway")
-        return { type: "train", name: tags.name || "Train/Metro Station" };
-      if (tags.highway === "bus_stop")
-        return { type: "bus", name: tags.name || "Bus Stop" };
-      if (tags.amenity === "school")
-        return { type: "school", name: tags.name || "School" };
-      if (tags.shop === "supermarket")
-        return { type: "shopping", name: tags.name || "Supermarket" };
-      if (tags.shop === "mall")
-        return { type: "shopping", name: tags.name || "Shopping Centre" };
-      if (tags.amenity === "hospital")
-        return { type: "medical", name: tags.name || "Hospital" };
-      if (tags.amenity === "clinic" || tags.amenity === "doctors")
-        return { type: "medical", name: tags.name || "Medical Centre" };
-      if (tags.leisure === "park")
-        return { type: "park", name: tags.name || "Park" };
-      if (tags.amenity === "pharmacy")
-        return { type: "medical", name: tags.name || "Pharmacy" };
-      if (tags.amenity === "restaurant" || tags.amenity === "cafe")
-        return { type: "dining", name: tags.name || "Restaurant/Cafe" };
-      return null;
-    };
+  const categorize = (el: Record<string, unknown>): { type: string; name: string } | null => {
+    const tags = el.tags as Record<string, string> | undefined;
+    if (!tags) return null;
+    if (tags.highway === "bus_stop") return { type: "bus", name: tags.name || "Bus Stop" };
+    if (tags.amenity === "school") return { type: "school", name: tags.name || "School" };
+    if (tags.shop === "supermarket") return { type: "shopping", name: tags.name || "Supermarket" };
+    if (tags.shop === "mall") return { type: "shopping", name: tags.name || "Shopping Centre" };
+    if (tags.amenity === "hospital") return { type: "medical", name: tags.name || "Hospital" };
+    if (tags.amenity === "clinic" || tags.amenity === "doctors") return { type: "medical", name: tags.name || "Medical Centre" };
+    if (tags.leisure === "park") return { type: "park", name: tags.name || "Park" };
+    if (tags.amenity === "pharmacy") return { type: "medical", name: tags.name || "Pharmacy" };
+    if (tags.amenity === "restaurant" || tags.amenity === "cafe") return { type: "dining", name: tags.name || "Restaurant/Cafe" };
+    return null;
+  };
 
-    const amenities: AmenityResult[] = [];
-
+  const processElements = (elements: Record<string, unknown>[]) => {
+    const results: AmenityResult[] = [];
     for (const el of elements) {
       const cat = categorize(el);
       if (!cat) continue;
@@ -124,86 +146,105 @@ export async function GET(req: NextRequest) {
       const elLon = (el.lon as number) || (el.center as { lon: number })?.lon;
       if (!elLat || !elLon) continue;
       const dist = Math.round(haversine(lat, lng, elLat, elLon));
-      amenities.push({ ...cat, distance: dist });
+      results.push({ ...cat, distance: dist });
+    }
+    return results;
+  };
+
+  try {
+    // Try cache first
+    const cached = readCache(lat, lng);
+    let data: Record<string, unknown>;
+
+    if (cached) {
+      data = cached;
+    } else {
+      data = await fetchOverpass(query);
+      writeCache(lat, lng, data);
     }
 
-    // Sort by distance within each category
-    amenities.sort((a, b) => a.distance - b.distance);
-
-    // Deduplicate by name within each type (OSM often has multiple nodes for same station)
-    const deduped: AmenityResult[] = [];
-    const seenKeys = new Set<string>();
-    for (const a of amenities) {
-      const key = `${a.type}:${a.name}`;
-      if (seenKeys.has(key)) continue;
-      seenKeys.add(key);
-      deduped.push(a);
-    }
-
-    // Group by type
-    const grouped: Record<string, AmenityResult[]> = {};
-    for (const a of deduped) {
-      if (!grouped[a.type]) grouped[a.type] = [];
-      grouped[a.type].push(a);
-    }
-
-    // Calculate connectivity score (0-10)
-    const trainStations = grouped.train || [];
-    const busStops = grouped.bus || [];
-    const schools = grouped.school || [];
-    const shops = grouped.shopping || [];
-    const medical = grouped.medical || [];
-    const parks = grouped.park || [];
-    const dining = grouped.dining || [];
-
-    let score = 0;
-    // Train within 1km = huge bonus, within 2km = good, within 3km = ok
-    if (trainStations.length > 0 && trainStations[0].distance <= 1000) score += 3;
-    else if (trainStations.length > 0 && trainStations[0].distance <= 2000) score += 2;
-    else if (trainStations.length > 0 && trainStations[0].distance <= 3000) score += 1;
-    // Bus stops
-    if (busStops.length >= 5) score += 1.5;
-    else if (busStops.length >= 2) score += 1;
-    else if (busStops.length >= 1) score += 0.5;
-    // Schools
-    if (schools.length >= 2) score += 1;
-    else if (schools.length >= 1) score += 0.5;
-    // Shopping
-    if (shops.length >= 1) score += 1;
-    // Medical
-    if (medical.length >= 2) score += 1;
-    else if (medical.length >= 1) score += 0.5;
-    // Parks
-    if (parks.length >= 2) score += 1;
-    else if (parks.length >= 1) score += 0.5;
-    // Dining
-    if (dining.length >= 5) score += 1;
-    else if (dining.length >= 2) score += 0.5;
-
-    score = Math.min(10, Math.round(score * 10) / 10);
-
-    return NextResponse.json({
-      score,
-      summary: {
-        train: trainStations.slice(0, 3),
-        bus: busStops.slice(0, 5),
-        school: schools.slice(0, 5),
-        shopping: shops.slice(0, 3),
-        medical: medical.slice(0, 3),
-        park: parks.slice(0, 3),
-        dining: dining.slice(0, 5),
-      },
-      counts: {
-        train: trainStations.length,
-        bus: busStops.length,
-        school: schools.length,
-        shopping: shops.length,
-        medical: medical.length,
-        park: parks.length,
-        dining: dining.length,
-      },
-    });
+    const elements = (data.elements || []) as Record<string, unknown>[];
+    amenities = processElements(elements);
   } catch {
-    return NextResponse.json({ error: "Failed to fetch connectivity data" }, { status: 500 });
+    // Try stale cache
+    try {
+      const fp = getCachePath(lat, lng);
+      const raw = fs.readFileSync(fp, "utf-8");
+      const data = JSON.parse(raw);
+      amenities = processElements((data.elements || []) as Record<string, unknown>[]);
+    } catch {
+      overpassFailed = true;
+    }
   }
+
+  // Combine train (static) + overpass amenities
+  const allAmenities = [...trainStations, ...amenities];
+  allAmenities.sort((a, b) => a.distance - b.distance);
+
+  // Deduplicate
+  const deduped: AmenityResult[] = [];
+  const seenKeys = new Set<string>();
+  for (const a of allAmenities) {
+    const key = `${a.type}:${a.name}`;
+    if (seenKeys.has(key)) continue;
+    seenKeys.add(key);
+    deduped.push(a);
+  }
+
+  // Group by type
+  const grouped: Record<string, AmenityResult[]> = {};
+  for (const a of deduped) {
+    if (!grouped[a.type]) grouped[a.type] = [];
+    grouped[a.type].push(a);
+  }
+
+  const trains = grouped.train || [];
+  const busStops = grouped.bus || [];
+  const schools = grouped.school || [];
+  const shops = grouped.shopping || [];
+  const medical = grouped.medical || [];
+  const parks = grouped.park || [];
+  const dining = grouped.dining || [];
+
+  let score = 0;
+  if (trains.length > 0 && trains[0].distance <= 1000) score += 3;
+  else if (trains.length > 0 && trains[0].distance <= 2000) score += 2;
+  else if (trains.length > 0 && trains[0].distance <= 3000) score += 1;
+  if (busStops.length >= 5) score += 1.5;
+  else if (busStops.length >= 2) score += 1;
+  else if (busStops.length >= 1) score += 0.5;
+  if (schools.length >= 2) score += 1;
+  else if (schools.length >= 1) score += 0.5;
+  if (shops.length >= 1) score += 1;
+  if (medical.length >= 2) score += 1;
+  else if (medical.length >= 1) score += 0.5;
+  if (parks.length >= 2) score += 1;
+  else if (parks.length >= 1) score += 0.5;
+  if (dining.length >= 5) score += 1;
+  else if (dining.length >= 2) score += 0.5;
+
+  score = Math.min(10, Math.round(score * 10) / 10);
+
+  return NextResponse.json({
+    score,
+    summary: {
+      train: trains.slice(0, 3),
+      bus: busStops.slice(0, 5),
+      school: schools.slice(0, 5),
+      shopping: shops.slice(0, 3),
+      medical: medical.slice(0, 3),
+      park: parks.slice(0, 3),
+      dining: dining.slice(0, 5),
+    },
+    counts: {
+      train: trains.length,
+      bus: busStops.length,
+      school: schools.length,
+      shopping: shops.length,
+      medical: medical.length,
+      park: parks.length,
+      dining: dining.length,
+    },
+    ...(overpassFailed ? { overpassError: true } : {}),
+  });
 }

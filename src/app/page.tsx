@@ -5,6 +5,7 @@ import SearchBar from "./components/SearchBar";
 import ReportCard from "./components/ReportCard";
 import ConnectivityCard from "./components/ConnectivityCard";
 import PerceptionCard from "./components/PerceptionCard";
+import HDACard from "./components/HDACard";
 import PlanningMap from "./components/PlanningMap";
 import { Loader2, BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned } from "lucide-react";
 
@@ -148,6 +149,7 @@ export default function Home() {
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <ConnectivityCard lat={coords.lat} lng={coords.lng} />
               <PerceptionCard address={data.address} />
+              <HDACard address={data.address} />
             </div>
           )}
           {coords && (

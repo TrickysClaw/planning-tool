@@ -3,6 +3,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import SearchBar from "./components/SearchBar";
 import ReportCard from "./components/ReportCard";
+import ConnectivityCard from "./components/ConnectivityCard";
+import PerceptionCard from "./components/PerceptionCard";
 import PlanningMap from "./components/PlanningMap";
 import { Loader2, BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark } from "lucide-react";
 
@@ -121,6 +123,12 @@ export default function Home() {
       {data && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-10 space-y-6">
           <ReportCard data={data} />
+          {coords && (
+            <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <ConnectivityCard lat={coords.lat} lng={coords.lng} />
+              <PerceptionCard address={data.address} />
+            </div>
+          )}
           {coords && (
             <div className="max-w-6xl mx-auto">
               <PlanningMap lat={coords.lat} lng={coords.lng} />

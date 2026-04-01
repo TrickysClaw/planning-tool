@@ -83,9 +83,9 @@ export default function Home() {
     setData(null);
 
     const [planning, hazard, cadastre] = await Promise.all([
-      fetch(`/api/planning?lat=${lat}&lng=${lng}`).then(r => r.json()),
-      fetch(`/api/hazard?lat=${lat}&lng=${lng}`).then(r => r.json()),
-      fetch(`/api/cadastre?lat=${lat}&lng=${lng}`).then(r => r.json()),
+      fetch(`/api/planning?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ results: [] })),
+      fetch(`/api/hazard?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ bushfire: { features: [] }, flood: { features: [] } })),
+      fetch(`/api/cadastre?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ features: [] })),
     ]);
 
     setData({ address: r.display_name, planning, hazard, cadastre });

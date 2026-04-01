@@ -81,7 +81,7 @@ export default function ReportCard({ data }: Props) {
             <p className="text-2xl font-bold text-emerald-400">{heightM}m</p>
             {storeys && <p>~{storeys} storeys</p>}
           </>
-        ) : <p className="text-slate-500">No height limit data</p>}
+        ) : <p className="text-slate-500">No height limit mapped — may be uncapped or set by DCP</p>}
       </ZoneCard>
 
       <ZoneCard icon={<BarChart3 size={20} />} title="Floor Space Ratio" delay={0.15}>
@@ -90,13 +90,13 @@ export default function ReportCard({ data }: Props) {
             <p className="text-2xl font-bold text-emerald-400">{fsr.FSR}</p>
             {maxGFA && <p>Max GFA: ~{maxGFA.toLocaleString()} m²</p>}
           </>
-        ) : <p className="text-slate-500">No FSR data</p>}
+        ) : <p className="text-slate-500">No FSR mapped — may be governed by DCP or SEPP provisions</p>}
       </ZoneCard>
 
       <ZoneCard icon={<Move size={20} />} title="Minimum Lot Size" delay={0.2}>
         {lotSize.LOT_SIZE ? (
           <p className="text-2xl font-bold text-emerald-400">{parseFloat(lotSize.LOT_SIZE).toLocaleString()} m²</p>
-        ) : <p className="text-slate-500">No minimum lot size data</p>}
+        ) : <p className="text-slate-500">No minimum lot size mapped — check applicable LEP/SEPP</p>}
       </ZoneCard>
 
       <ZoneCard icon={<Landmark size={20} />} title="Heritage" delay={0.25}>

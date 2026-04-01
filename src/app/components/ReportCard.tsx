@@ -1,6 +1,6 @@
 "use client";
 import ZoneCard from "./ZoneCard";
-import { MapPin, Building2, Ruler, BarChart3, Move, Landmark, Flame, Waves } from "lucide-react";
+import { MapPin, Building2, Ruler, BarChart3, Move, Landmark, Flame, Waves, Mountain, FlaskConical, MapPinned } from "lucide-react";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -48,6 +48,9 @@ export default function ReportCard({ data }: Props) {
   const cad = cadastre?.features?.[0]?.attributes || {};
   const bush = hazard?.bushfire?.features || [];
   const flood = hazard?.flood?.features || [];
+  const landslide = hazard?.landslide?.features || [];
+  const acidSulfate = hazard?.acidSulfate || [];
+  const keySites = hazard?.keySites || [];
 
   const lotArea = cad.lot_area || cad.shape_area;
   const fsrNum = parseFloat(fsr.FSR);
@@ -122,6 +125,35 @@ export default function ReportCard({ data }: Props) {
         {flood.length > 0 ? (
           <p className="text-blue-400 font-bold">⚠️ Flood Affected</p>
         ) : <p className="text-slate-400">Not flood affected</p>}
+      </ZoneCard>
+
+      <ZoneCard icon={<Mountain size={20} />} title="Landslide Risk" delay={0.4}>
+        {landslide.length > 0 ? (
+          <>
+            <p className="text-orange-400 font-bold">⚠️ Landslide Risk Area</p>
+            {landslide[0].attributes?.CATEGORY && <p>Category: {landslide[0].attributes.CATEGORY}</p>}
+          </>
+        ) : <p className="text-slate-400">No landslide risk</p>}
+      </ZoneCard>
+
+      <ZoneCard icon={<FlaskConical size={20} />} title="Acid Sulfate Soils" delay={0.45}>
+        {acidSulfate.length > 0 ? (
+          <>
+            <p className="text-yellow-400 font-bold">⚠️ Acid Sulfate Soils</p>
+            <p>{acidSulfate[0].attributes?.LABEL || acidSulfate[0].attributes?.Class || "Present"}</p>
+            <p className="text-xs text-slate-400 mt-1">Development may require an acid sulfate soils management plan</p>
+          </>
+        ) : <p className="text-slate-400">No acid sulfate soils mapped</p>}
+      </ZoneCard>
+
+      <ZoneCard icon={<MapPinned size={20} />} title="Key Sites" delay={0.5}>
+        {keySites.length > 0 ? (
+          <>
+            <p className="text-emerald-400 font-bold">Key Development Site</p>
+            {keySites[0].attributes?.LABEL && <p>{keySites[0].attributes.LABEL}</p>}
+            {keySites[0].attributes?.["EPI Name"] && <p className="text-xs text-slate-400 mt-1">{keySites[0].attributes["EPI Name"]}</p>}
+          </>
+        ) : <p className="text-slate-400">Not a designated key site</p>}
       </ZoneCard>
     </div>
   );

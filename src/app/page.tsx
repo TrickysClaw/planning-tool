@@ -6,7 +6,7 @@ import ReportCard from "./components/ReportCard";
 import ConnectivityCard from "./components/ConnectivityCard";
 import PerceptionCard from "./components/PerceptionCard";
 import PlanningMap from "./components/PlanningMap";
-import { Loader2, BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark } from "lucide-react";
+import { Loader2, BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned } from "lucide-react";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -59,6 +59,27 @@ const glossary = [
     short: "Whether the land is in a flood-affected area",
     detail: "Flood-affected land has development restrictions under the NSW Flood Prone Land Policy. The Flood Planning Level (FPL) is typically the 1% AEP (Annual Exceedance Probability) flood level plus a freeboard of 0.5m. Habitable floor levels must be above the FPL. Some flood-prone areas prohibit certain types of development entirely. Flood affectation can impact insurance costs, resale value, and the type/intensity of development permitted.",
     example: "Flood Planning Area → Floor levels must be raised above flood level. Floodway → Extremely restricted development, often prohibited.",
+  },
+  {
+    icon: <Mountain className="text-emerald-400" size={22} />,
+    term: "Landslide Risk",
+    short: "Whether the land is susceptible to landslide",
+    detail: "Landslide risk mapping identifies areas where the terrain, geology, and drainage make land movements more likely. Development on landslide-prone land typically requires a geotechnical investigation and may need engineered retaining walls, drainage systems, and specific foundation designs. This can significantly increase construction costs.",
+    example: "Landslide risk area → Geotechnical report required. May need piled foundations + retaining walls, adding $50-100k+ to build cost.",
+  },
+  {
+    icon: <FlaskConical className="text-emerald-400" size={22} />,
+    term: "Acid Sulfate Soils",
+    short: "Soil that produces acid when exposed to air",
+    detail: "Acid sulfate soils contain iron sulfides that, when disturbed by excavation or drainage, react with oxygen to produce sulfuric acid. This can corrode concrete and steel, kill vegetation, and contaminate waterways. Classes range from 1 (highest probability, closest to surface) to 5 (lowest probability). Development on Class 1-4 soils generally requires an Acid Sulfate Soils Management Plan before any works involving soil disturbance.",
+    example: "Class 1 → Works at any depth need a management plan. Class 5 → Only works within 500m of adjacent Class 1-4 land are affected.",
+  },
+  {
+    icon: <MapPinned className="text-emerald-400" size={22} />,
+    term: "Key Sites",
+    short: "Land identified for specific development outcomes",
+    detail: "Key sites are designated in LEPs or SEPPs for particular development outcomes — often with special planning controls, additional permitted uses, or modified development standards. Being a key site can mean either additional development potential (bonus FSR/height) or specific restrictions tied to the site's strategic importance in the planning framework.",
+    example: "Key Site at Norwest → May allow additional building height or mixed-use development not normally permitted in the zone.",
   },
   {
     icon: <Shield className="text-emerald-400" size={22} />,

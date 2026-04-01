@@ -64,12 +64,18 @@ export default function ConnectivityCard({ lat, lng }: { lat: number; lng: numbe
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
 
+  const [error, setError] = useState(false);
+
   useEffect(() => {
     setLoading(true);
+    setError(false);
     fetch(`/api/connectivity?lat=${lat}&lng=${lng}`)
       .then(r => r.json())
-      .then(d => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(d => { 
+        if (d.error) { setError(true); } else { setData(d); }
+        setLoading(false); 
+      })
+      .catch(() => { setError(true); setLoading(false); });
   }, [lat, lng]);
 
   if (loading) {
@@ -88,7 +94,18 @@ export default function ConnectivityCard({ lat, lng }: { lat: number; lng: numbe
     );
   }
 
-  if (!data || data.score === undefined) return null;
+  if (error || !data || data.score === undefined) {
+    return (
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+        className="glass-card col-span-1 md:col-span-2">
+        <div className="flex items-center gap-2 mb-3">
+          <Wifi className="text-emerald-400" size={20} />
+          <h3 className="font-semibold text-white text-lg">Connectivity</h3>
+        </div>
+        <p className="text-sm text-slate-400">Unable to load connectivity data — the OpenStreetMap service may be temporarily busy. Try refreshing.</p>
+      </motion.div>
+    );
+  }
 
   const label = data.score >= 8 ? "Excellent" : data.score >= 6 ? "Good" : data.score >= 4 ? "Moderate" : "Limited";
 

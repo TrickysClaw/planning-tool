@@ -1,7 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // Overpass API — query nearby amenities within a radius
-const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
+// Multiple Overpass endpoints for failover
+const OVERPASS_URLS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.openstreetmap.ru/api/interpreter",
+];
+
+async function fetchOverpass(query: string): Promise<Record<string, unknown>> {
+  for (const url of OVERPASS_URLS) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      const res = await fetch(url, {
+        method: "POST",
+        body: `data=${encodeURIComponent(query)}`,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      if (!res.ok) continue;
+      const text = await res.text();
+      if (text.startsWith("<")) continue; // HTML error page
+      return JSON.parse(text);
+    } catch {
+      continue;
+    }
+  }
+  throw new Error("All Overpass endpoints failed");
+}
 
 interface AmenityResult {
   type: string;
@@ -58,18 +86,8 @@ export async function GET(req: NextRequest) {
   `;
 
   try {
-    const res = await fetch(OVERPASS_URL, {
-      method: "POST",
-      body: `data=${encodeURIComponent(query)}`,
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    });
-
-    if (!res.ok) {
-      return NextResponse.json({ error: "Overpass API error" }, { status: 502 });
-    }
-
-    const data = await res.json();
-    const elements = data.elements || [];
+    const data = await fetchOverpass(query);
+    const elements = (data.elements || []) as Record<string, unknown>[];
 
     const categorize = (el: Record<string, unknown>): { type: string; name: string } | null => {
       const tags = el.tags as Record<string, string> | undefined;

@@ -22,12 +22,13 @@ export async function GET(req: NextRequest) {
     if (!addresses.length) return NextResponse.json([]);
 
     // Step 2: For each unique propId, get the lot geometry centroid
-    const seen = new Set<number>();
+    const seen = new Set<string>();
     const results = [];
 
     for (const addr of addresses) {
-      if (seen.has(addr.propId)) continue;
-      seen.add(addr.propId);
+      // Deduplicate by address string (not propId — 25 and 25A are different addresses on same lot)
+      if (seen.has(addr.address)) continue;
+      seen.add(addr.address);
 
       try {
         const lotRes = await fetch(`${LOT_URL}?propid=${addr.propId}`);

@@ -9,6 +9,7 @@ const MARKER_COLORS: Record<string, string> = {
   "hda-declared": "#F59E0B",
   "hda-not-declared": "#EF4444",
   "hda-deferred": "#A855F7",
+  "ssda": "#3B82F6",
 };
 
 export default function PlanningMapInner({
@@ -94,6 +95,10 @@ export default function PlanningMapInner({
           <span className="flex items-center gap-1">
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#EF4444", display: "inline-block" }} />
             HDA Not Declared
+          </span>
+          <span className="flex items-center gap-1">
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#3B82F6", display: "inline-block" }} />
+            SSDA Project
           </span>
         </div>
       </div>

@@ -5,7 +5,7 @@ export interface MapMarker {
   lat: number;
   lng: number;
   label: string;
-  type: "search" | "hda-declared" | "hda-not-declared" | "hda-deferred";
+  type: "search" | "hda-declared" | "hda-not-declared" | "hda-deferred" | "ssda";
 }
 
 const PlanningMapInner = dynamic(() => import("./PlanningMapInner"), { ssr: false });

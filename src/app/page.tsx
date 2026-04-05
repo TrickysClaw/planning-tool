@@ -6,10 +6,10 @@ import ReportCard from "./components/ReportCard";
 import ConnectivityCard from "./components/ConnectivityCard";
 import PerceptionCard from "./components/PerceptionCard";
 import HDACard from "./components/HDACard";
-import SSDACard from "./components/SSDACard";
 import PlanningMap from "./components/PlanningMap";
 import type { MapMarker } from "./components/PlanningMap";
-import { Loader2, BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned } from "lucide-react";
+import { Loader2, BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned, Search, Construction } from "lucide-react";
+import Link from "next/link";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -99,8 +99,6 @@ export default function Home() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [showGuide, setShowGuide] = useState(false);
   const [hdaMarkers, setHdaMarkers] = useState<MapMarker[]>([]);
-  const [ssdaMarkers, setSsdaMarkers] = useState<MapMarker[]>([]);
-  const [detectedLga, setDetectedLga] = useState<string>("");
 
   const handleHDAProjects = useCallback((projects: any[]) => {
     const markers: MapMarker[] = projects
@@ -118,18 +116,6 @@ export default function Home() {
     setHdaMarkers(markers);
   }, []);
 
-  const handleSSDAProjects = useCallback((projects: any[]) => {
-    const markers: MapMarker[] = projects
-      .filter((p: any) => p.coords)
-      .map((p: any) => ({
-        lat: p.coords.lat,
-        lng: p.coords.lng,
-        label: `${p.caseId}: ${p.title}`,
-        type: "ssda" as const,
-      }));
-    setSsdaMarkers(markers);
-  }, []);
-
   async function handleSelect(r: { display_name: string; lat: string; lon: string }) {
     const lat = parseFloat(r.lat);
     const lng = parseFloat(r.lon);
@@ -144,23 +130,28 @@ export default function Home() {
     ]);
 
     setData({ address: r.display_name, planning, hazard, cadastre });
-    
-    // Detect LGA from planning results
-    const lgaResult = planning?.results?.find((r: any) => r.layerName === "Land Zoning" && r.attributes?.LGA_NAME);
-    const lgaRaw = lgaResult?.attributes?.LGA_NAME || "";
-    // Convert "CITY OF PARRAMATTA" → "City of Parramatta" title case
-    const lgaName = lgaRaw.replace(/\b\w+/g, (w: string) => {
-      const lower = w.toLowerCase();
-      if (["of", "the"].includes(lower) && lgaRaw.indexOf(w) > 0) return lower;
-      return lower.charAt(0).toUpperCase() + lower.slice(1);
-    });
-    setDetectedLga(lgaName);
-    
     setLoading(false);
   }
 
   return (
     <main className="min-h-screen px-4 py-12 md:py-20">
+      {/* Navigation Tabs */}
+      <div className="flex justify-center mb-8">
+        <div className="inline-flex rounded-xl bg-white/[0.03] border border-white/[0.06] p-1 gap-1">
+          <span className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 text-emerald-300 text-sm font-medium">
+            <Search size={14} />
+            Address Search
+          </span>
+          <Link
+            href="/ssda"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.05] text-sm font-medium transition"
+          >
+            <Construction size={14} />
+            SSDA Tracker
+          </Link>
+        </div>
+      </div>
+
       <div className="text-center mb-8">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
@@ -195,14 +186,11 @@ export default function Home() {
               <ConnectivityCard lat={coords.lat} lng={coords.lng} />
               <PerceptionCard address={data.address} />
               <HDACard address={data.address} onProjects={handleHDAProjects} />
-              {detectedLga && (
-                <SSDACard lga={detectedLga} onProjects={handleSSDAProjects} />
-              )}
             </div>
           )}
           {coords && (
             <div className="max-w-6xl mx-auto">
-              <PlanningMap lat={coords.lat} lng={coords.lng} markers={[...hdaMarkers, ...ssdaMarkers]} />
+              <PlanningMap lat={coords.lat} lng={coords.lng} markers={[...hdaMarkers]} />
             </div>
           )}
         </motion.div>

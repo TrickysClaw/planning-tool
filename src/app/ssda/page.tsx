@@ -168,10 +168,13 @@ export default function SSDAPage() {
             ← Back to Address Search
           </a>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
-            🏗️ SSDA Tracker
+            🏗️ Major Projects Tracker
           </h1>
           <p className="text-slate-400 text-lg">
-            Track State Significant Development Applications across NSW
+            Big developments happening across NSW — hospitals, housing estates, metro stations, and more
+          </p>
+          <p className="text-slate-500 text-sm mt-2">
+            These are government-approved major projects that bypass normal council processes. They can transform entire suburbs.
           </p>
         </motion.div>
 

@@ -163,7 +163,7 @@ export default function Home() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.05] text-sm font-medium transition"
           >
             <Construction size={14} />
-            SSDA Tracker
+            Major Projects
           </Link>
         </div>
       </div>

@@ -47,11 +47,12 @@ export default function PlanningMapInner({
     if (polygon && polygon.length > 2) {
       const poly = L.polygon(polygon, {
         color: "#10B981",
-        weight: 2.5,
+        weight: 3,
         fillColor: "#10B981",
-        fillOpacity: 0.15,
+        fillOpacity: 0.25,
         dashArray: "6 3",
       }).addTo(map);
+      poly.bindPopup(`<b style="color:#000">Your Property Boundary</b>`);
       bounds.extend(poly.getBounds());
     }
 

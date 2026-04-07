@@ -33,6 +33,14 @@ const REC_COLORS: Record<string, string> = {
   Withdrawn: "bg-slate-500/20 text-slate-300",
 };
 
+const REC_LABELS: Record<string, string> = {
+  "Declare SSD": "✅ Approved for fast-track",
+  "Not Declare": "❌ Rejected — goes back to council",
+  "Deferred": "⏳ Decision pending",
+  "Existing SSD pathway": "🔄 Already in the system",
+  "Withdrawn": "🚫 Pulled out",
+};
+
 function recColor(rec: string): string {
   for (const [key, val] of Object.entries(REC_COLORS)) {
     if (rec.includes(key)) return val;
@@ -81,11 +89,11 @@ export default function HDACard({
       >
         <div className="flex items-center gap-2 mb-3">
           <Building2 className="text-emerald-400" size={20} />
-          <h3 className="font-semibold text-white text-lg">Nearby Housing Projects (HDA)</h3>
+          <h3 className="font-semibold text-white text-lg">Big Housing Projects Nearby</h3>
         </div>
         <div className="flex items-center gap-2 text-slate-400 text-sm">
           <div className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
-          Searching HDA projects...
+          Checking for major developments nearby...
         </div>
       </motion.div>
     );
@@ -103,13 +111,13 @@ export default function HDACard({
     >
       <div className="flex items-center gap-2 mb-2">
         <Building2 className="text-emerald-400" size={20} />
-        <h3 className="font-semibold text-white text-lg">Nearby Housing Projects (HDA)</h3>
+        <h3 className="font-semibold text-white text-lg">Big Housing Projects Nearby</h3>
         {projects.length > 0 && (
           <span className="ml-auto text-xs text-slate-400">{projects.length} found</span>
         )}
       </div>
       <p className="text-xs text-slate-500 mb-4">
-        Housing Delivery Authority EOIs — proposals reviewed for State Significant Development fast-tracking
+        Large housing developments proposed near you — these skip council and get fast-tracked by the NSW government. They can significantly impact your area&apos;s density, traffic, and property values.
       </p>
 
       {projects.length === 0 ? (
@@ -130,7 +138,7 @@ export default function HDACard({
                   <span className="text-xs text-slate-400">🏠 {p.dwellings.toLocaleString()} dwellings</span>
                 )}
                 <span className={`px-2 py-0.5 rounded text-xs ${recColor(p.recommendation)}`}>
-                  {p.recommendation || "—"}
+                  {Object.entries(REC_LABELS).find(([k]) => p.recommendation?.includes(k))?.[1] || p.recommendation || "—"}
                 </span>
               </div>
 

@@ -99,6 +99,7 @@ export default function Home() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [showGuide, setShowGuide] = useState(false);
   const [hdaMarkers, setHdaMarkers] = useState<MapMarker[]>([]);
+  const [lotPolygon, setLotPolygon] = useState<[number, number][] | undefined>(undefined);
 
   const handleHDAProjects = useCallback((projects: any[]) => {
     const markers: MapMarker[] = projects
@@ -112,6 +113,9 @@ export default function Home() {
           : p.recommendation?.includes("Deferred")
           ? "hda-deferred" as const
           : "hda-not-declared" as const,
+        dwellings: p.dwellings,
+        recommendation: p.recommendation,
+        briefingUrl: p.briefingUrl,
       }));
     setHdaMarkers(markers);
   }, []);
@@ -128,6 +132,18 @@ export default function Home() {
       fetch(`/api/hazard?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ bushfire: { features: [] }, flood: { features: [] } })),
       fetch(`/api/cadastre?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ features: [] })),
     ]);
+
+    // Extract lot polygon from cadastre (Web Mercator → WGS84)
+    let poly: [number, number][] | undefined;
+    if (cadastre?.features?.[0]?.geometry?.rings?.[0]) {
+      const ring = cadastre.features[0].geometry.rings[0] as number[][];
+      poly = ring.map(([mx, my]: number[]) => {
+        const pLng = (mx * 180) / 20037508.34;
+        const pLat = (Math.atan(Math.exp((my * Math.PI) / 20037508.34)) * 360) / Math.PI - 90;
+        return [pLat, pLng] as [number, number];
+      });
+    }
+    setLotPolygon(poly);
 
     setData({ address: r.display_name, planning, hazard, cadastre });
     setLoading(false);
@@ -185,12 +201,12 @@ export default function Home() {
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <ConnectivityCard lat={coords.lat} lng={coords.lng} />
               <PerceptionCard address={data.address} />
-              <HDACard address={data.address} onProjects={handleHDAProjects} />
+              <HDACard address={data.address} lat={coords.lat} lng={coords.lng} onProjects={handleHDAProjects} />
             </div>
           )}
           {coords && (
             <div className="max-w-6xl mx-auto">
-              <PlanningMap lat={coords.lat} lng={coords.lng} markers={[...hdaMarkers]} />
+              <PlanningMap lat={coords.lat} lng={coords.lng} markers={[...hdaMarkers]} polygon={lotPolygon} />
             </div>
           )}
         </motion.div>

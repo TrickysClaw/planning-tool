@@ -16,10 +16,12 @@ export default function PlanningMapInner({
   lat,
   lng,
   markers,
+  polygon,
 }: {
   lat: number;
   lng: number;
   markers?: MapMarker[];
+  polygon?: [number, number][];
 }) {
   useEffect(() => {
     const container = document.getElementById("planning-map");
@@ -29,18 +31,43 @@ export default function PlanningMapInner({
       container.innerHTML = "";
     }
 
-    const map = L.map(container).setView([lat, lng], 14);
+    const map = L.map(container, {
+      zoomControl: false,
+    }).setView([lat, lng], 14);
+
+    // Add zoom control with custom position
+    L.control.zoom({ position: "topright" }).addTo(map);
+
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
       attribution: "© OpenStreetMap © CARTO",
     }).addTo(map);
 
-    // Search location marker
+    // Lot polygon
+    if (polygon && polygon.length > 2) {
+      L.polygon(polygon, {
+        color: "#10B981",
+        weight: 2,
+        fillColor: "#10B981",
+        fillOpacity: 0.2,
+      }).addTo(map);
+    }
+
+    // Search location marker with glow
     const searchIcon = L.divIcon({
-      html: `<div style="width:16px;height:16px;background:#10B981;border-radius:50%;border:3px solid #fff;box-shadow:0 0 10px #10B981"></div>`,
+      html: `<div style="position:relative">
+        <div style="position:absolute;top:-8px;left:-8px;width:32px;height:32px;background:rgba(16,185,129,0.15);border-radius:50%;animation:pulse-glow 2s ease-in-out infinite"></div>
+        <div style="width:16px;height:16px;background:#10B981;border-radius:50%;border:3px solid #fff;box-shadow:0 0 12px #10B981,0 0 24px rgba(16,185,129,0.3)"></div>
+      </div>`,
       iconSize: [16, 16],
       iconAnchor: [8, 8],
       className: "",
     });
+
+    // Add pulse animation
+    const style = document.createElement("style");
+    style.textContent = `@keyframes pulse-glow { 0%,100% { transform:scale(1);opacity:0.6 } 50% { transform:scale(1.5);opacity:0 } }`;
+    document.head.appendChild(style);
+
     L.marker([lat, lng], { icon: searchIcon })
       .addTo(map)
       .bindPopup(`<b style="color:#000">Searched Address</b>`);
@@ -58,26 +85,30 @@ export default function PlanningMapInner({
           className: "",
         });
 
+        const typeLabel = m.type.replace("hda-", "").replace("-", " ").replace(/^\w/, c => c.toUpperCase());
+        const dwellingsHtml = m.dwellings ? `<br/>🏠 <b>${m.dwellings.toLocaleString()}</b> dwellings` : "";
+        const recHtml = m.recommendation ? `<br/><span style="color:${color};font-weight:600">${typeLabel}</span>` : "";
+        const linkHtml = m.briefingUrl ? `<br/><a href="${m.briefingUrl}" target="_blank" style="color:#10B981;font-size:11px">View HDA Briefing →</a>` : "";
+
         L.marker([m.lat, m.lng], { icon })
           .addTo(map)
           .bindPopup(
-            `<div style="color:#000;font-size:12px;max-width:220px">
-              <b>${m.label}</b><br/>
-              <span style="color:#666">${m.type.replace("hda-", "HDA: ").replace("-", " ")}</span>
+            `<div style="color:#000;font-size:12px;max-width:250px;line-height:1.5">
+              <b>${m.label}</b>${dwellingsHtml}${recHtml}${linkHtml}
             </div>`
           );
 
         bounds.extend([m.lat, m.lng]);
       });
 
-      // Fit map to show all markers with padding
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+      map.fitBounds(bounds, { padding: [60, 60], maxZoom: 15 });
     }
 
     return () => {
       map.remove();
+      style.remove();
     };
-  }, [lat, lng, markers]);
+  }, [lat, lng, markers, polygon]);
 
   return (
     <div className="glass-card !p-0 overflow-hidden mt-4">
@@ -102,7 +133,17 @@ export default function PlanningMapInner({
           </span>
         </div>
       </div>
-      <div id="planning-map" style={{ height: 400 }} />
+      <div id="planning-map" style={{ height: 500 }} />
+      <style jsx global>{`
+        .leaflet-control-zoom a {
+          background: rgba(7, 11, 20, 0.85) !important;
+          color: #fff !important;
+          border-color: rgba(255,255,255,0.1) !important;
+        }
+        .leaflet-control-zoom a:hover {
+          background: rgba(16, 185, 129, 0.3) !important;
+        }
+      `}</style>
     </div>
   );
 }

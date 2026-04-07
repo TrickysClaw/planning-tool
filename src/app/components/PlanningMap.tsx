@@ -6,10 +6,23 @@ export interface MapMarker {
   lng: number;
   label: string;
   type: "search" | "hda-declared" | "hda-not-declared" | "hda-deferred" | "ssda";
+  dwellings?: number | null;
+  recommendation?: string;
+  briefingUrl?: string;
 }
 
 const PlanningMapInner = dynamic(() => import("./PlanningMapInner"), { ssr: false });
 
-export default function PlanningMap({ lat, lng, markers }: { lat: number; lng: number; markers?: MapMarker[] }) {
-  return <PlanningMapInner lat={lat} lng={lng} markers={markers} />;
+export default function PlanningMap({
+  lat,
+  lng,
+  markers,
+  polygon,
+}: {
+  lat: number;
+  lng: number;
+  markers?: MapMarker[];
+  polygon?: [number, number][];
+}) {
+  return <PlanningMapInner lat={lat} lng={lng} markers={markers} polygon={polygon} />;
 }

@@ -42,9 +42,13 @@ function recColor(rec: string): string {
 
 export default function HDACard({
   address,
+  lat,
+  lng,
   onProjects,
 }: {
   address: string;
+  lat?: number;
+  lng?: number;
   onProjects?: (projects: HDAProject[]) => void;
 }) {
   const [projects, setProjects] = useState<HDAProject[]>([]);
@@ -54,7 +58,9 @@ export default function HDACard({
   useEffect(() => {
     if (!address) return;
     setLoading(true);
-    fetch(`/api/hda?address=${encodeURIComponent(address)}`)
+    let url = `/api/hda?address=${encodeURIComponent(address)}`;
+    if (lat && lng) url += `&lat=${lat}&lng=${lng}`;
+    fetch(url)
       .then((r) => r.json())
       .then((d) => {
         const p = d.projects || [];
@@ -63,7 +69,7 @@ export default function HDACard({
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [address, onProjects]);
+  }, [address, lat, lng, onProjects]);
 
   if (loading) {
     return (

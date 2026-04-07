@@ -33,55 +33,57 @@ export default function PlanningMapInner({
 
     const map = L.map(container, {
       zoomControl: false,
-    }).setView([lat, lng], 14);
+    }).setView([lat, lng], 16);
 
-    // Add zoom control with custom position
     L.control.zoom({ position: "topright" }).addTo(map);
 
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
       attribution: "© OpenStreetMap © CARTO",
     }).addTo(map);
 
-    // Lot polygon
+    const bounds = L.latLngBounds([[lat, lng]]);
+
+    // Lot polygon — zoom to fit it
     if (polygon && polygon.length > 2) {
-      L.polygon(polygon, {
+      const poly = L.polygon(polygon, {
         color: "#10B981",
-        weight: 2,
+        weight: 2.5,
         fillColor: "#10B981",
-        fillOpacity: 0.2,
+        fillOpacity: 0.15,
+        dashArray: "6 3",
       }).addTo(map);
+      bounds.extend(poly.getBounds());
     }
 
-    // Search location marker with glow
+    // Search marker with pulse
     const searchIcon = L.divIcon({
       html: `<div style="position:relative">
-        <div style="position:absolute;top:-8px;left:-8px;width:32px;height:32px;background:rgba(16,185,129,0.15);border-radius:50%;animation:pulse-glow 2s ease-in-out infinite"></div>
+        <div style="position:absolute;top:-12px;left:-12px;width:40px;height:40px;background:rgba(16,185,129,0.12);border-radius:50%;animation:pulse-glow 2s ease-in-out infinite"></div>
         <div style="width:16px;height:16px;background:#10B981;border-radius:50%;border:3px solid #fff;box-shadow:0 0 12px #10B981,0 0 24px rgba(16,185,129,0.3)"></div>
       </div>`,
       iconSize: [16, 16],
       iconAnchor: [8, 8],
       className: "",
     });
-
-    // Add pulse animation
     const style = document.createElement("style");
-    style.textContent = `@keyframes pulse-glow { 0%,100% { transform:scale(1);opacity:0.6 } 50% { transform:scale(1.5);opacity:0 } }`;
+    style.textContent = `@keyframes pulse-glow { 0%,100% { transform:scale(1);opacity:0.6 } 50% { transform:scale(1.8);opacity:0 } }`;
     document.head.appendChild(style);
 
     L.marker([lat, lng], { icon: searchIcon })
       .addTo(map)
-      .bindPopup(`<b style="color:#000">Searched Address</b>`);
+      .bindPopup(`<b style="color:#000">Searched Address</b>`)
+      .openPopup();
 
     // HDA markers
+    let hasHdaMarkers = false;
     if (markers?.length) {
-      const bounds = L.latLngBounds([[lat, lng]]);
-
       markers.forEach((m) => {
+        hasHdaMarkers = true;
         const color = MARKER_COLORS[m.type] || "#F59E0B";
         const icon = L.divIcon({
-          html: `<div style="width:12px;height:12px;background:${color};border-radius:50%;border:2px solid rgba(255,255,255,0.7);box-shadow:0 0 6px ${color}"></div>`,
-          iconSize: [12, 12],
-          iconAnchor: [6, 6],
+          html: `<div style="width:14px;height:14px;background:${color};border-radius:50%;border:2px solid rgba(255,255,255,0.8);box-shadow:0 0 8px ${color}"></div>`,
+          iconSize: [14, 14],
+          iconAnchor: [7, 7],
           className: "",
         });
 
@@ -100,8 +102,16 @@ export default function PlanningMapInner({
 
         bounds.extend([m.lat, m.lng]);
       });
+    }
 
-      map.fitBounds(bounds, { padding: [60, 60], maxZoom: 15 });
+    // Always fit to bounds — if only search marker + polygon, zooms to property
+    // If HDA markers exist, zooms to show all of them
+    if (hasHdaMarkers) {
+      map.fitBounds(bounds, { padding: [60, 60], maxZoom: 16 });
+    } else if (polygon && polygon.length > 2) {
+      map.fitBounds(bounds, { padding: [80, 80], maxZoom: 18 });
+    } else {
+      map.setView([lat, lng], 16);
     }
 
     return () => {
@@ -133,7 +143,7 @@ export default function PlanningMapInner({
           </span>
         </div>
       </div>
-      <div id="planning-map" style={{ height: 500 }} />
+      <div id="planning-map" style={{ height: 550 }} />
       <style jsx global>{`
         .leaflet-control-zoom a {
           background: rgba(7, 11, 20, 0.85) !important;

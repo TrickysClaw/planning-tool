@@ -6,6 +6,8 @@ import ReportCard from "./components/ReportCard";
 import ConnectivityCard from "./components/ConnectivityCard";
 import PerceptionCard from "./components/PerceptionCard";
 import HDACard from "./components/HDACard";
+import NearbyDACard from "./components/NearbyDACard";
+import NearbyCDCCard from "./components/NearbyCDCCard";
 import PlanningMap from "./components/PlanningMap";
 import type { MapMarker } from "./components/PlanningMap";
 import { Loader2, BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned, Search, Construction } from "lucide-react";
@@ -99,6 +101,7 @@ export default function Home() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [showGuide, setShowGuide] = useState(false);
   const [hdaMarkers, setHdaMarkers] = useState<MapMarker[]>([]);
+  const [daMarkers, setDaMarkers] = useState<MapMarker[]>([]);
   const [lotPolygon, setLotPolygon] = useState<[number, number][] | undefined>(undefined);
 
   const handleHDAProjects = useCallback((projects: any[]) => {
@@ -118,6 +121,26 @@ export default function Home() {
         briefingUrl: p.briefingUrl,
       }));
     setHdaMarkers(markers);
+  }, []);
+
+  const handleDAResults = useCallback((das: any[]) => {
+    const markers: MapMarker[] = das
+      .filter((d: any) => d.lat && d.lng)
+      .map((d: any) => {
+        const status = (d.status || "").toLowerCase();
+        const type: MapMarker["type"] = status.includes("assessment")
+          ? "da-under-assessment"
+          : status.includes("rejected")
+          ? "da-rejected"
+          : "da-determined";
+        return {
+          lat: d.lat,
+          lng: d.lng,
+          label: `${d.address} (${d.status})`,
+          type,
+        };
+      });
+    setDaMarkers(markers);
   }, []);
 
   async function handleSelect(r: { display_name: string; lat: string; lon: string }) {
@@ -199,7 +222,7 @@ export default function Home() {
           <ReportCard data={data} />
           {coords && (
             <div className="max-w-6xl mx-auto mt-4">
-              <PlanningMap lat={coords.lat} lng={coords.lng} markers={[...hdaMarkers]} polygon={lotPolygon} />
+              <PlanningMap lat={coords.lat} lng={coords.lng} markers={[...hdaMarkers, ...daMarkers]} polygon={lotPolygon} />
             </div>
           )}
           {coords && (
@@ -207,6 +230,8 @@ export default function Home() {
               <ConnectivityCard lat={coords.lat} lng={coords.lng} />
               <PerceptionCard address={data.address} />
               <HDACard address={data.address} lat={coords.lat} lng={coords.lng} onProjects={handleHDAProjects} />
+              <NearbyDACard lat={coords.lat} lng={coords.lng} onDAs={handleDAResults} />
+              <NearbyCDCCard lat={coords.lat} lng={coords.lng} />
             </div>
           )}
         </motion.div>

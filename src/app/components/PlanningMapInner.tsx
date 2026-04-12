@@ -10,6 +10,9 @@ const MARKER_COLORS: Record<string, string> = {
   "hda-not-declared": "#EF4444",
   "hda-deferred": "#A855F7",
   ssda: "#3B82F6",
+  "da-under-assessment": "#F97316",
+  "da-determined": "#10B981",
+  "da-rejected": "#EF4444",
 };
 
 // Inject pulse animation once
@@ -205,6 +208,30 @@ export default function PlanningMapInner({
               }}
             />
             Major Project
+          </span>
+          <span className="flex items-center gap-1">
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                background: "#F97316",
+                display: "inline-block",
+              }}
+            />
+            DA Under Assessment
+          </span>
+          <span className="flex items-center gap-1">
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                background: "#10B981",
+                display: "inline-block",
+              }}
+            />
+            DA Determined
           </span>
         </div>
       </div>

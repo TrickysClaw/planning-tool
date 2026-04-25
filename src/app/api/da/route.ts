@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
       return {
         address: da.Location?.[0]?.FullAddress || "Unknown address",
         status: da.ApplicationStatus || "Unknown",
-        type: da.DevelopmentType || [],
+        type: (da.DevelopmentType || []).map((t: any) => typeof t === "string" ? t : t?.DevelopmentType || t?.value || JSON.stringify(t)),
         costOfDevelopment: da.CostOfDevelopment || 0,
         dwellings: da.NumberOfNewDwellings || 0,
         storeys: da.NumberOfStoreys || 0,

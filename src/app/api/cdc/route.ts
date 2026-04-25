@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
       return {
         address: cdc.Location?.[0]?.FullAddress || "Unknown address",
         status: cdc.ApplicationStatus || "Unknown",
-        type: cdc.DevelopmentType || [],
+        type: (cdc.DevelopmentType || []).map((t: any) => typeof t === "string" ? t : t?.DevelopmentType || t?.value || JSON.stringify(t)),
         costOfDevelopment: cdc.CostOfDevelopment || 0,
         dwellings: cdc.NumberOfNewDwellings || 0,
         storeys: cdc.NumberOfStoreys || 0,

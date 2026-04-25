@@ -26,16 +26,30 @@ if (typeof document !== "undefined") {
   }
 }
 
+function getZoneColor(zoneCode?: string): string {
+  const base = zoneCode?.replace(/\s.*/, "") || "";
+  if (base === "R2") return "#FCD34D";
+  if (base === "R3") return "#FB923C";
+  if (base === "R4") return "#EF4444";
+  if (["B1","B2","B4","MU1"].includes(base)) return "#A78BFA";
+  if (base.startsWith("E") || base.startsWith("C")) return "#34D399";
+  if (base.startsWith("IN")) return "#94A3B8";
+  if (base.startsWith("RE")) return "#6EE7B7";
+  return "#10B981";
+}
+
 export default function PlanningMapInner({
   lat,
   lng,
   markers,
   polygon,
+  zoneCode,
 }: {
   lat: number;
   lng: number;
   markers?: MapMarker[];
   polygon?: [number, number][];
+  zoneCode?: string;
 }) {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -80,10 +94,11 @@ export default function PlanningMapInner({
 
     // Lot polygon
     if (polygon && polygon.length > 2) {
+      const polyColor = getZoneColor(zoneCode);
       const poly = L.polygon(polygon, {
-        color: "#10B981",
+        color: polyColor,
         weight: 3,
-        fillColor: "#10B981",
+        fillColor: polyColor,
         fillOpacity: 0.25,
         dashArray: "6 3",
       });
@@ -154,7 +169,7 @@ export default function PlanningMapInner({
 
     // Open search popup after a tick (avoids race)
     setTimeout(() => searchMarker.openPopup(), 300);
-  }, [lat, lng, markers, polygon]);
+  }, [lat, lng, markers, polygon, zoneCode]);
 
   return (
     <div className="glass-card !p-0 overflow-hidden mt-4">

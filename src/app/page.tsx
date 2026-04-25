@@ -1,8 +1,9 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import SearchBar from "./components/SearchBar";
 import ReportCard from "./components/ReportCard";
+import BuildSummaryCard from "./components/BuildSummaryCard";
 import ConnectivityCard from "./components/ConnectivityCard";
 import PerceptionCard from "./components/PerceptionCard";
 import HDACard from "./components/HDACard";
@@ -10,10 +11,32 @@ import NearbyDACard from "./components/NearbyDACard";
 import NearbyCDCCard from "./components/NearbyCDCCard";
 import PlanningMap from "./components/PlanningMap";
 import type { MapMarker } from "./components/PlanningMap";
-import { Loader2, BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned, Search, Construction } from "lucide-react";
+import { Loader2, BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned, Search, Construction, Map, ClipboardList, ShieldAlert, Clock, ExternalLink } from "lucide-react";
 import Link from "next/link";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+interface SearchHistoryEntry {
+  address: string;
+  lat: number;
+  lng: number;
+  zone: string;
+  timestamp: number;
+}
+
+function getSearchHistory(): SearchHistoryEntry[] {
+  if (typeof window === "undefined") return [];
+  try {
+    return JSON.parse(localStorage.getItem("planning-search-history") || "[]");
+  } catch { return []; }
+}
+
+function saveSearchHistory(entry: SearchHistoryEntry) {
+  if (typeof window === "undefined") return;
+  const history = getSearchHistory().filter(h => h.address !== entry.address);
+  history.unshift(entry);
+  localStorage.setItem("planning-search-history", JSON.stringify(history.slice(0, 10)));
+}
 
 const glossary = [
   {
@@ -95,6 +118,19 @@ const glossary = [
   },
 ];
 
+const EXAMPLE_ADDRESSES = [
+  { display: "1 Martin Place, Sydney NSW 2000", lat: -33.8678, lng: 151.2093 },
+  { display: "45 Norwest Blvd, Bella Vista NSW 2153", lat: -33.7315, lng: 150.9530 },
+  { display: "12 Castle Street, Castle Hill NSW 2154", lat: -33.7310, lng: 151.0050 },
+  { display: "100 George Street, Parramatta NSW 2150", lat: -33.8151, lng: 151.0030 },
+];
+
+const FEATURES = [
+  { icon: <Map size={28} />, title: "Zoning & Controls", desc: "Instantly see zoning, height limits, FSR, lot size, and heritage status for any property" },
+  { icon: <ClipboardList size={28} />, title: "Nearby Development", desc: "Browse DAs and CDCs lodged near any address — see what others are building" },
+  { icon: <ShieldAlert size={28} />, title: "Risk Assessment", desc: "Check bushfire, flood, landslide, and acid sulfate soil risks in one place" },
+];
+
 export default function Home() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -103,6 +139,12 @@ export default function Home() {
   const [hdaMarkers, setHdaMarkers] = useState<MapMarker[]>([]);
   const [daMarkers, setDaMarkers] = useState<MapMarker[]>([]);
   const [lotPolygon, setLotPolygon] = useState<[number, number][] | undefined>(undefined);
+  const [zoneCode, setZoneCode] = useState<string>("");
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryEntry[]>([]);
+
+  useEffect(() => {
+    setSearchHistory(getSearchHistory());
+  }, []);
 
   const handleHDAProjects = useCallback((projects: any[]) => {
     const markers: MapMarker[] = projects
@@ -149,6 +191,7 @@ export default function Home() {
     setCoords({ lat, lng });
     setLoading(true);
     setData(null);
+    setZoneCode("");
 
     const [planning, hazard, cadastre] = await Promise.all([
       fetch(`/api/planning?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ results: [] })),
@@ -156,7 +199,6 @@ export default function Home() {
       fetch(`/api/cadastre?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ features: [] })),
     ]);
 
-    // Extract lot polygon from cadastre (Web Mercator → WGS84)
     let poly: [number, number][] | undefined;
     if (cadastre?.features?.[0]?.geometry?.rings?.[0]) {
       const ring = cadastre.features[0].geometry.rings[0] as number[][];
@@ -168,9 +210,31 @@ export default function Home() {
     }
     setLotPolygon(poly);
 
+    // Extract zone code
+    const zoningResult = (planning?.results || []).find((r: any) => r.layerName === "Land Zoning");
+    const zone = zoningResult?.attributes?.SYM_CODE || "";
+    setZoneCode(zone);
+
     setData({ address: r.display_name, planning, hazard, cadastre });
     setLoading(false);
+
+    // Save to history
+    const entry: SearchHistoryEntry = { address: r.display_name, lat, lng, zone, timestamp: Date.now() };
+    saveSearchHistory(entry);
+    setSearchHistory(getSearchHistory());
   }
+
+  function handleExampleClick(addr: { display: string; lat: number; lng: number }) {
+    handleSelect({ display_name: addr.display, lat: String(addr.lat), lon: String(addr.lng) });
+  }
+
+  function handleHistoryClick(entry: SearchHistoryEntry) {
+    handleSelect({ display_name: entry.address, lat: String(entry.lat), lon: String(entry.lng) });
+  }
+
+  const streetViewUrl = coords
+    ? `https://www.google.com/maps/@${coords.lat},${coords.lng},3a,75y,0h,90t/data=!3m6!1e1!3m4!1s!2e0!7i16384!8i8192`
+    : null;
 
   return (
     <main className="min-h-screen px-4 py-12 md:py-20">
@@ -205,11 +269,72 @@ export default function Home() {
           transition={{ delay: 0.2 }}
           className="text-slate-400 text-lg"
         >
-          Search any NSW address for zoning, height limits, FSR & more
+          Search any address. Know what you can build.
         </motion.p>
       </div>
 
-      <SearchBar onSelect={handleSelect} />
+      <SearchBar onSelect={handleSelect} searchHistory={searchHistory} onHistoryClick={handleHistoryClick} />
+
+      {/* Landing page content - shown when no data and not loading */}
+      {!data && !loading && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-16 max-w-4xl mx-auto">
+          {/* Feature cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+            {FEATURES.map((f, i) => (
+              <motion.div
+                key={f.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 + i * 0.1 }}
+                className="glass-card text-center"
+              >
+                <div className="flex justify-center mb-3 text-emerald-400">{f.icon}</div>
+                <h3 className="text-white font-semibold mb-2">{f.title}</h3>
+                <p className="text-slate-400 text-sm">{f.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Example addresses */}
+          <div className="mb-12">
+            <h3 className="text-center text-slate-400 text-sm font-medium mb-4">Try these addresses</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl mx-auto">
+              {EXAMPLE_ADDRESSES.map((addr) => (
+                <button
+                  key={addr.display}
+                  onClick={() => handleExampleClick(addr)}
+                  className="glass-card !p-3 text-left text-sm text-slate-300 hover:text-white hover:border-emerald-500/30 transition-all flex items-center gap-2"
+                >
+                  <MapPinned size={14} className="text-emerald-400 shrink-0" />
+                  {addr.display}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Recent searches */}
+          {searchHistory.length > 0 && (
+            <div>
+              <h3 className="text-center text-slate-400 text-sm font-medium mb-4 flex items-center justify-center gap-2">
+                <Clock size={14} /> Recent searches
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl mx-auto">
+                {searchHistory.slice(0, 4).map((entry) => (
+                  <button
+                    key={entry.timestamp}
+                    onClick={() => handleHistoryClick(entry)}
+                    className="glass-card !p-3 text-left text-sm text-slate-300 hover:text-white hover:border-emerald-500/30 transition-all flex items-center gap-2"
+                  >
+                    <Clock size={14} className="text-slate-500 shrink-0" />
+                    <span className="truncate">{entry.address}</span>
+                    {entry.zone && <span className="shrink-0 text-xs text-emerald-400/60">{entry.zone}</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {loading && (
         <div className="flex justify-center mt-12">
@@ -219,10 +344,26 @@ export default function Home() {
 
       {data && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-10 space-y-6">
+          {/* Build Summary Card — FIRST */}
+          <BuildSummaryCard data={data} />
+
           <ReportCard data={data} />
+
+          {/* Street View + Map */}
           {coords && (
             <div className="max-w-6xl mx-auto mt-4">
-              <PlanningMap lat={coords.lat} lng={coords.lng} markers={[...hdaMarkers, ...daMarkers]} polygon={lotPolygon} />
+              <div className="flex justify-end mb-2">
+                <a
+                  href={streetViewUrl || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-slate-300 hover:text-white hover:border-emerald-500/30 text-sm transition-all"
+                >
+                  <ExternalLink size={14} />
+                  View Street View
+                </a>
+              </div>
+              <PlanningMap lat={coords.lat} lng={coords.lng} markers={[...hdaMarkers, ...daMarkers]} polygon={lotPolygon} zoneCode={zoneCode} />
             </div>
           )}
           {coords && (

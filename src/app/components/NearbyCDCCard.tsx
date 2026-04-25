@@ -84,11 +84,43 @@ export default function NearbyCDCCard({ lat, lng }: { lat: number; lng: number }
         <div className="text-slate-500 text-sm py-6 text-center">No CDCs found within 1km</div>
       ) : (
         <>
-          <div className="flex gap-4 mb-4 flex-wrap">
+          <div className="flex gap-3 mb-4 flex-wrap">
             <div className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-sm">
               <span className="text-slate-400">Total nearby:</span>{" "}
               <span className="text-white font-semibold">{cdcs.length}</span>
             </div>
+            {(() => {
+              const totalValue = cdcs.reduce((sum, c) => sum + (c.costOfDevelopment || 0), 0);
+              const determined = cdcs.filter(c => c.status.toLowerCase().includes("determined")).length;
+              const approvalRate = cdcs.length > 0 ? Math.round((determined / cdcs.length) * 100) : 0;
+              const typeCounts: Record<string, number> = {};
+              cdcs.forEach(c => { const t = Array.isArray(c.type) ? c.type.join(", ") : (c.type || "Unknown"); typeCounts[t] = (typeCounts[t] || 0) + 1; });
+              const mostCommon = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0];
+              return (
+                <>
+                  {totalValue > 0 && (
+                    <div className="px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-sm">
+                      <span className="text-blue-300/70">Total value:</span>{" "}
+                      <span className="text-blue-300 font-semibold">{formatAUD(totalValue)}</span>
+                    </div>
+                  )}
+                  <div className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-sm">
+                    <span className="text-emerald-300/70">Determined:</span>{" "}
+                    <span className="text-emerald-300 font-semibold">{determined}</span>
+                  </div>
+                  <div className="px-3 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-sm">
+                    <span className="text-purple-300/70">Approval rate:</span>{" "}
+                    <span className="text-purple-300 font-semibold">{approvalRate}%</span>
+                  </div>
+                  {mostCommon && (
+                    <div className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-sm">
+                      <span className="text-slate-400">Most common:</span>{" "}
+                      <span className="text-white font-semibold truncate">{mostCommon[0]}</span>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
 
           <div className="space-y-3">

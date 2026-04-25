@@ -93,13 +93,14 @@ export default function BuildSummaryCard({ data }: Props) {
   const zoneName = zoning.LAY_CLASS || "";
   const heightM = parseFloat(height.MAX_B_H);
   const fsrNum = parseFloat(fsr.FSR);
-  const lotArea = cad.lot_area || cad.shape_area || 600;
+  const lotArea = cad.planlotarea || cad.lot_area || cad.shape_Area || cad.shape_area || 0;
   const hasHeritage = !!heritage.HER_NAME;
   const hasBushfire = bush.length > 0;
   const hasFlood = flood.length > 0;
 
   const storeys = !isNaN(heightM) ? Math.floor(heightM / 3) : null;
-  const maxGFA = !isNaN(fsrNum) ? Math.round(fsrNum * 600) : null;
+  const effectiveLot = lotArea > 0 ? Math.round(lotArea) : 600;
+  const maxGFA = !isNaN(fsrNum) ? Math.round(fsrNum * effectiveLot) : null;
   const potential = getDevelopmentPotential(zoneCode, isNaN(fsrNum) ? 0 : fsrNum, hasHeritage, hasBushfire, hasFlood);
   const config = POTENTIAL_CONFIG[potential];
 
@@ -139,6 +140,13 @@ export default function BuildSummaryCard({ data }: Props) {
 
         {/* Key metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+          {lotArea > 0 && (
+            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+              <p className="text-xs text-slate-400 mb-1">Estimated Lot Size</p>
+              <p className="text-lg font-bold text-white">{effectiveLot.toLocaleString()}m²</p>
+              <p className="text-xs text-slate-400">From cadastre boundary data</p>
+            </div>
+          )}
           {storeys !== null && (
             <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
               <p className="text-xs text-slate-400 mb-1">Maximum Height</p>
@@ -149,7 +157,7 @@ export default function BuildSummaryCard({ data }: Props) {
             <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
               <p className="text-xs text-slate-400 mb-1">Floor Space Ratio</p>
               <p className="text-lg font-bold text-white">{fsr.FSR}:1</p>
-              <p className="text-xs text-slate-400">On a 600m² lot, you could build up to {maxGFA.toLocaleString()}m² of floor area</p>
+              <p className="text-xs text-slate-400">Max buildable floor area: {maxGFA.toLocaleString()}m²</p>
             </div>
           )}
           {lotSizeData.LOT_SIZE && (

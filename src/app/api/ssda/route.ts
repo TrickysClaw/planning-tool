@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parse } from "node-html-parser";
-import fs from "fs";
-import path from "path";
+
+// In-memory cache
+const cache = new Map<string, { data: SSDAProject[]; timestamp: number }>();
+const CACHE_TTL = 3600000; // 1 hour
+
+function getCached(lgaNum: number): SSDAProject[] | null {
+  const entry = cache.get(String(lgaNum));
+  if (!entry || Date.now() - entry.timestamp > CACHE_TTL) return null;
+  return entry.data;
+}
+
+function setCache(lgaNum: number, data: SSDAProject[]) {
+  cache.set(String(lgaNum), { data, timestamp: Date.now() });
+}
 
 // LGA name → number mapping (all 128)
 const LGA_MAP: Record<string, number> = {
@@ -141,28 +153,6 @@ interface SSDAProject {
   address: string;
   detailUrl: string;
   coords?: { lat: number; lng: number } | null;
-}
-
-const CACHE_DIR = "/tmp/ssda-cache";
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
-
-function getCached(lgaNum: number): SSDAProject[] | null {
-  try {
-    const file = path.join(CACHE_DIR, `lga-${lgaNum}.json`);
-    if (!fs.existsSync(file)) return null;
-    const stat = fs.statSync(file);
-    if (Date.now() - stat.mtimeMs > CACHE_TTL) return null;
-    return JSON.parse(fs.readFileSync(file, "utf-8"));
-  } catch {
-    return null;
-  }
-}
-
-function setCache(lgaNum: number, data: SSDAProject[]) {
-  try {
-    fs.mkdirSync(CACHE_DIR, { recursive: true });
-    fs.writeFileSync(path.join(CACHE_DIR, `lga-${lgaNum}.json`), JSON.stringify(data));
-  } catch { /* ignore */ }
 }
 
 function parseProjectsFromHTML(html: string): SSDAProject[] {

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { STATIONS } from "../../data/stations";
-import * as fs from "fs";
-import * as path from "path";
 
 const OVERPASS_URLS = [
   "https://overpass-api.de/api/interpreter",
@@ -9,29 +7,22 @@ const OVERPASS_URLS = [
   "https://overpass.openstreetmap.ru/api/interpreter",
 ];
 
-const CACHE_DIR = "/tmp/connectivity-cache";
-const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
+// In-memory cache
+const cache = new Map<string, { data: Record<string, unknown>; timestamp: number }>();
+const CACHE_TTL = 3600000; // 1 hour
 
-function getCachePath(lat: number, lng: number): string {
-  return path.join(CACHE_DIR, `${Math.round(lat * 1000)}_${Math.round(lng * 1000)}.json`);
+function getCacheKey(lat: number, lng: number): string {
+  return `${Math.round(lat * 1000)}_${Math.round(lng * 1000)}`;
 }
 
 function readCache(lat: number, lng: number): Record<string, unknown> | null {
-  try {
-    const fp = getCachePath(lat, lng);
-    const stat = fs.statSync(fp);
-    if (Date.now() - stat.mtimeMs > CACHE_TTL) return null;
-    return JSON.parse(fs.readFileSync(fp, "utf-8"));
-  } catch {
-    return null;
-  }
+  const entry = cache.get(getCacheKey(lat, lng));
+  if (!entry || Date.now() - entry.timestamp > CACHE_TTL) return null;
+  return entry.data;
 }
 
 function writeCache(lat: number, lng: number, data: Record<string, unknown>) {
-  try {
-    fs.mkdirSync(CACHE_DIR, { recursive: true });
-    fs.writeFileSync(getCachePath(lat, lng), JSON.stringify(data));
-  } catch { /* ignore */ }
+  cache.set(getCacheKey(lat, lng), { data, timestamp: Date.now() });
 }
 
 async function fetchOverpass(query: string): Promise<Record<string, unknown>> {
@@ -167,12 +158,10 @@ export async function GET(req: NextRequest) {
     amenities = processElements(elements);
   } catch {
     // Try stale cache
-    try {
-      const fp = getCachePath(lat, lng);
-      const raw = fs.readFileSync(fp, "utf-8");
-      const data = JSON.parse(raw);
-      amenities = processElements((data.elements || []) as Record<string, unknown>[]);
-    } catch {
+    const stale = cache.get(getCacheKey(lat, lng));
+    if (stale) {
+      amenities = processElements((stale.data.elements || []) as Record<string, unknown>[]);
+    } else {
       overpassFailed = true;
     }
   }

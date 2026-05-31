@@ -20,9 +20,10 @@ interface Props {
   onSelect: (r: GeoResult) => void;
   searchHistory?: SearchHistoryEntry[];
   onHistoryClick?: (entry: SearchHistoryEntry) => void;
+  compact?: boolean;
 }
 
-export default function SearchBar({ onSelect, searchHistory, onHistoryClick }: Props) {
+export default function SearchBar({ onSelect, searchHistory, onHistoryClick, compact }: Props) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<GeoResult[]>([]);
   const [open, setOpen] = useState(false);
@@ -72,12 +73,13 @@ export default function SearchBar({ onSelect, searchHistory, onHistoryClick }: P
   }, [results, q, searchHistory]);
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto" ref={containerRef}>
-      <div className="flex items-center glass-card !p-3 gap-3">
-        <Search className="text-emerald-400 shrink-0" size={24} />
+    <div className={`relative w-full ${compact ? "" : "max-w-2xl mx-auto"}`} ref={containerRef}>
+      <div className={`flex items-center gap-3 ${compact ? "rounded-lg px-3 py-2" : "glass-card !p-3"}`} style={compact ? { background: "var(--input-bg)", border: "1px solid var(--input-border)", transition: "border-color 150ms ease, box-shadow 150ms ease" } : undefined}>
+        <Search className="shrink-0" size={compact ? 18 : 24} style={{ color: "var(--accent)" }} />
         <input
           ref={inputRef}
-          className="bg-transparent outline-none w-full text-lg text-white placeholder-slate-500"
+          className={`bg-transparent outline-none w-full ${compact ? "text-sm" : "text-lg"} placeholder:text-[var(--text-muted)]`}
+          style={{ color: "var(--text-primary)" }}
           placeholder="Search any NSW address..."
           value={q}
           onChange={(e) => handleInputChange(e.target.value)}
@@ -88,7 +90,7 @@ export default function SearchBar({ onSelect, searchHistory, onHistoryClick }: P
           }}
         />
         {q && (
-          <button onClick={() => { setQ(""); setResults([]); setOpen(false); }} className="text-slate-500 hover:text-white transition">
+          <button onClick={() => { setQ(""); setResults([]); setOpen(false); }} className="btn-icon">
             <X size={18} />
           </button>
         )}
@@ -97,7 +99,7 @@ export default function SearchBar({ onSelect, searchHistory, onHistoryClick }: P
       {open && results.length > 0 && (
         <div className="absolute z-50 w-full mt-2 glass-card !p-2 space-y-1 max-h-60 overflow-y-auto">
           {results.map((r, i) => (
-            <button key={i} className="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-500/10 text-sm text-slate-200 transition" onClick={() => handleSelect(r)}>
+            <button key={i} className="dropdown-item" onClick={() => handleSelect(r)}>
               {r.display_name}
             </button>
           ))}
@@ -106,17 +108,17 @@ export default function SearchBar({ onSelect, searchHistory, onHistoryClick }: P
 
       {showHistory && searchHistory && searchHistory.length > 0 && !open && (
         <div className="absolute z-50 w-full mt-2 glass-card !p-2 space-y-1 max-h-60 overflow-y-auto">
-          <div className="px-3 py-1.5 text-xs text-slate-500 font-medium flex items-center gap-1.5">
+          <div className="px-3 py-1.5 text-xs font-medium flex items-center gap-1.5" style={{ color: "var(--text-muted)" }}>
             <Clock size={11} /> Recent searches
           </div>
           {searchHistory.slice(0, 6).map((entry) => (
             <button
               key={entry.timestamp}
-              className="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-500/10 text-sm text-slate-200 transition flex items-center justify-between"
+              className="dropdown-item flex items-center justify-between"
               onClick={() => { if (timer.current) clearTimeout(timer.current); onHistoryClick?.(entry); setQ(entry.address); setShowHistory(false); }}
             >
               <span className="truncate">{entry.address}</span>
-              {entry.zone && <span className="text-xs text-emerald-400/50 shrink-0 ml-2">{entry.zone}</span>}
+              {entry.zone && <span className="text-xs shrink-0 ml-2" style={{ color: "var(--accent)", opacity: 0.6 }}>{entry.zone}</span>}
             </button>
           ))}
         </div>

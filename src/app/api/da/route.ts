@@ -37,9 +37,9 @@ export async function GET(req: NextRequest) {
 
   const councilName = await getCouncilName(lat, lng);
   const councilNames = councilName ? [councilName] : [];
-  const twoYearsAgo = new Date();
-  twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
-  const dateFrom = twoYearsAgo.toISOString().slice(0, 10);
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+  const dateFrom = oneYearAgo.toISOString().slice(0, 10);
 
   const allResults: any[] = [];
 
@@ -48,21 +48,45 @@ export async function GET(req: NextRequest) {
       filters: { CouncilName: [council], LodgementDateFrom: dateFrom },
     });
 
-    for (let page = 1; page <= 3; page++) {
-      try {
-        const res = await fetch("https://api.apps1.nsw.gov.au/eplanning/data/v0/OnlineDA", {
-          headers: { PageSize: "100", PageNumber: String(page), filters },
-          next: { revalidate: 3600 },
-        });
-        if (!res.ok) break;
-        const data = await res.json();
-        const items = data?.Application || data || [];
-        if (!Array.isArray(items) || items.length === 0) break;
-        allResults.push(...items);
-        if (items.length < 100) break;
-      } catch {
-        break;
+    // First request to get TotalPages (API returns oldest first, so we fetch from the last page backwards)
+    try {
+      const firstRes = await fetch("https://api.apps1.nsw.gov.au/eplanning/data/v0/OnlineDA", {
+        headers: { PageSize: "100", PageNumber: "1", filters },
+        next: { revalidate: 3600 },
+      });
+      if (!firstRes.ok) continue;
+      const firstData = await firstRes.json();
+      const totalPages = firstData.TotalPages || 1;
+
+      // Fetch last 5 pages (newest data) in reverse order
+      const startPage = Math.max(1, totalPages - 4);
+      for (let page = totalPages; page >= startPage; page--) {
+        if (page === 1 && totalPages > 1) {
+          // We already fetched page 1 for TotalPages but it has old data, skip unless it's the only page
+          continue;
+        }
+        try {
+          const res = await fetch("https://api.apps1.nsw.gov.au/eplanning/data/v0/OnlineDA", {
+            headers: { PageSize: "100", PageNumber: String(page), filters },
+            next: { revalidate: 3600 },
+          });
+          if (!res.ok) break;
+          const data = await res.json();
+          const items = data?.Application || data || [];
+          if (!Array.isArray(items) || items.length === 0) break;
+          allResults.push(...items);
+        } catch {
+          break;
+        }
       }
+
+      // If only 1 page total, use the data from the first request
+      if (totalPages === 1) {
+        const items = firstData?.Application || [];
+        if (Array.isArray(items)) allResults.push(...items);
+      }
+    } catch {
+      continue;
     }
   }
 

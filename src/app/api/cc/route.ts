@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
 
     // First request to get TotalPages (API returns oldest first, so we fetch from the last page backwards)
     try {
-      const firstRes = await fetch("https://api.apps1.nsw.gov.au/eplanning/data/v0/OnlineCDC", {
+      const firstRes = await fetch("https://api.apps1.nsw.gov.au/eplanning/data/v0/OnlineCC", {
         headers: { PageSize: "100", PageNumber: "1", filters },
         next: { revalidate: 3600 },
       });
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
           continue;
         }
         try {
-          const res = await fetch("https://api.apps1.nsw.gov.au/eplanning/data/v0/OnlineCDC", {
+          const res = await fetch("https://api.apps1.nsw.gov.au/eplanning/data/v0/OnlineCC", {
             headers: { PageSize: "100", PageNumber: String(page), filters },
             next: { revalidate: 3600 },
           });
@@ -90,37 +90,44 @@ export async function GET(req: NextRequest) {
   }
 
   const nearby = allResults
-    .map((cdc: any) => {
-      const loc = cdc.Location?.[0];
+    .map((cc: any) => {
+      const loc = cc.Location?.[0];
       if (!loc?.X || !loc?.Y) return null;
-      const cdcLng = parseFloat(loc.X);
-      const cdcLat = parseFloat(loc.Y);
-      if (isNaN(cdcLat) || isNaN(cdcLng)) return null;
-      const dist = haversineKm(lat, lng, cdcLat, cdcLng);
+      const ccLng = parseFloat(loc.X);
+      const ccLat = parseFloat(loc.Y);
+      if (isNaN(ccLat) || isNaN(ccLng)) return null;
+      const dist = haversineKm(lat, lng, ccLat, ccLng);
       if (dist > radius) return null;
 
-      const devTypes = (cdc.DevelopmentType || []).map((t: any) =>
+      const devTypes = (cc.DevelopmentType || []).map((t: any) =>
         typeof t === "string" ? t : t?.DevelopmentType || t?.value || ""
       ).filter(Boolean);
 
-      const lots = (loc.Lot || []).map((l: any) => `Lot ${l.Lot}/${l.PlanLabel}`).join(", ");
+      const buildingClasses = (cc.BuildingCodeClass || []).map((b: any) => ({
+        class: b.BuildingCodeClass || "",
+        description: b.BuildingCodeDescription || "",
+      }));
 
       return {
         address: loc.FullAddress || "Unknown address",
         suburb: loc.Suburb || "",
-        status: cdc.ApplicationStatus || "Unknown",
-        applicationType: cdc.ApplicationType || "CDC",
+        status: cc.ApplicationStatus || "Unknown",
         type: devTypes,
-        description: devTypes.join(", ") || "Complying Development",
-        costOfDevelopment: cdc.CostOfDevelopment || 0,
-        dwellings: cdc.NumberOfNewDwellings || 0,
-        storeys: cdc.NumberOfStoreys || 0,
-        lodgementDate: cdc.LodgementDate || cdc.SubmissionDate || "",
-        pan: cdc.PlanningPortalApplicationNumber || "",
-        councilRef: cdc.CouncilApplicationNumber || "",
-        lot: lots,
-        lat: cdcLat,
-        lng: cdcLng,
+        description: devTypes.join(", ") || "Construction Certificate",
+        costOfDevelopment: cc.CostOfDevelopment || 0,
+        storeys: cc.StoreysProposed || 0,
+        units: cc.UnitsProposed || 0,
+        lodgementDate: cc.LodgementDate || cc.DateSubmitted || "",
+        determinationDate: cc.DeterminationDate || "",
+        pan: cc.PlanningPortalApplicationNumber || "",
+        builder: cc.BuilderLegalName || "",
+        currentUse: cc.CurrentBuildingUse || "",
+        proposedUse: cc.ProposedBuildingUse || "",
+        buildingClasses,
+        existingFloorArea: cc.ExistingGrossFloorArea || 0,
+        proposedFloorArea: cc.ProposedGrossFloorArea || 0,
+        lat: ccLat,
+        lng: ccLng,
         distance: Math.round(dist * 1000),
       };
     })

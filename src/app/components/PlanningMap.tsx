@@ -6,6 +6,15 @@ export interface MapMarker {
   lng: number;
   label: string;
   color?: string;
+  description?: string;
+  cost?: number;
+  dwellings?: number;
+  storeys?: number;
+  status?: string;
+  date?: string;
+  link?: string;
+  pan?: string;
+  councilRef?: string;
 }
 
 const PlanningMapInner = dynamic(() => import("./PlanningMapInner"), { ssr: false });
@@ -17,6 +26,8 @@ export default function PlanningMap({
   polygon,
   lgaBoundary,
   zoneCode,
+  streetViewUrl,
+  focusPoint,
 }: {
   lat: number;
   lng: number;
@@ -24,6 +35,8 @@ export default function PlanningMap({
   polygon?: [number, number][];
   lgaBoundary?: [number, number][];
   zoneCode?: string;
+  streetViewUrl?: string;
+  focusPoint?: { lat: number; lng: number } | null;
 }) {
-  return <PlanningMapInner lat={lat} lng={lng} markers={markers} polygon={polygon} lgaBoundary={lgaBoundary} zoneCode={zoneCode} />;
+  return <PlanningMapInner lat={lat} lng={lng} markers={markers} polygon={polygon} lgaBoundary={lgaBoundary} zoneCode={zoneCode} streetViewUrl={streetViewUrl} focusPoint={focusPoint} />;
 }

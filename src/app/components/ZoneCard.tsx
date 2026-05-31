@@ -18,10 +18,10 @@ export default function ZoneCard({ icon, title, children, delay = 0 }: Props) {
       className="glass-card"
     >
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-emerald-400">{icon}</span>
-        <h3 className="font-semibold text-white text-lg">{title}</h3>
+        <span style={{ color: "var(--accent)" }}>{icon}</span>
+        <h3 className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>{title}</h3>
       </div>
-      <div className="text-slate-300 text-sm space-y-1">{children}</div>
+      <div className="text-sm space-y-1" style={{ color: "var(--text-secondary)" }}>{children}</div>
     </motion.div>
   );
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { HardHat, ChevronDown, ChevronUp, MapPin } from "lucide-react";
 
@@ -23,7 +23,7 @@ interface CDCResult {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  Determined: "bg-emerald-500/20 text-emerald-300",
+  Determined: "bg-indigo-500/20 text-indigo-300",
   "Under Assessment": "bg-yellow-500/20 text-yellow-300",
   Rejected: "bg-red-500/20 text-red-300",
   Withdrawn: "bg-slate-500/20 text-slate-400",
@@ -51,27 +51,51 @@ function formatDate(d: string): string {
   }
 }
 
-export default function NearbyCDCCard({ lat, lng }: { lat: number; lng: number }) {
+export default function NearbyCDCCard({ lat, lng, onCDCs }: { lat: number; lng: number; onCDCs?: (cdcs: CDCResult[]) => void }) {
   const [cdcs, setCdcs] = useState<CDCResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [sortBy, setSortBy] = useState<"distance" | "cost" | "date" | "dwellings">("distance");
 
   useEffect(() => {
     setLoading(true);
     fetch(`/api/cdc?lat=${lat}&lng=${lng}`)
       .then((r) => r.json())
-      .then((d) => setCdcs(d.results || []))
+      .then((d) => {
+        const results = d.results || [];
+        setCdcs(results);
+        onCDCs?.(results);
+      })
       .catch(() => setCdcs([]))
       .finally(() => setLoading(false));
-  }, [lat, lng]);
+  }, [lat, lng, onCDCs]);
 
-  const visible = expanded ? cdcs : cdcs.slice(0, 5);
+  const statuses = useMemo(() => ["All", ...Array.from(new Set(cdcs.map((c) => c.status).filter(Boolean)))], [cdcs]);
+
+  const filtered = useMemo(() => {
+    let result = cdcs;
+    if (statusFilter !== "All") {
+      result = result.filter((c) => c.status === statusFilter);
+    }
+    result = [...result].sort((a, b) => {
+      switch (sortBy) {
+        case "cost": return (b.costOfDevelopment || 0) - (a.costOfDevelopment || 0);
+        case "date": return new Date(b.lodgementDate || 0).getTime() - new Date(a.lodgementDate || 0).getTime();
+        case "dwellings": return (b.dwellings || 0) - (a.dwellings || 0);
+        default: return (a.distance || 0) - (b.distance || 0);
+      }
+    });
+    return result;
+  }, [cdcs, statusFilter, sortBy]);
+
+  const visible = expanded ? filtered : filtered.slice(0, 5);
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
       className="glass-card col-span-1 md:col-span-2">
       <div className="flex items-center gap-3 mb-1">
-        <HardHat className="text-emerald-400" size={22} />
+        <HardHat className="text-indigo-400" size={22} />
         <h2 className="text-lg font-semibold text-white">🏗️ Fast-Track Approvals Nearby (CDC)</h2>
       </div>
       <p className="text-slate-400 text-sm mb-4">
@@ -101,9 +125,9 @@ export default function NearbyCDCCard({ lat, lng }: { lat: number; lng: number }
                       <span className="text-blue-300 font-semibold">{formatAUD(totalValue)}</span>
                     </div>
                   )}
-                  <div className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-sm">
-                    <span className="text-emerald-300/70">Determined:</span>{" "}
-                    <span className="text-emerald-300 font-semibold">{determined}</span>
+                  <div className="px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-sm">
+                    <span className="text-indigo-300/70">Determined:</span>{" "}
+                    <span className="text-indigo-300 font-semibold">{determined}</span>
                   </div>
                   <div className="px-3 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-sm">
                     <span className="text-purple-300/70">Approval rate:</span>{" "}
@@ -114,6 +138,23 @@ export default function NearbyCDCCard({ lat, lng }: { lat: number; lng: number }
             })()}
           </div>
 
+          <div className="flex flex-wrap gap-2 mb-4">
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-1.5 text-xs text-slate-300 outline-none">
+              {statuses.map((s) => <option key={s} value={s}>{s === "All" ? "All Statuses" : s}</option>)}
+            </select>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)}
+              className="bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-1.5 text-xs text-slate-300 outline-none">
+              <option value="distance">Sort: Nearest</option>
+              <option value="date">Sort: Most Recent</option>
+              <option value="cost">Sort: Highest Value</option>
+              <option value="dwellings">Sort: Most Dwellings</option>
+            </select>
+            {statusFilter !== "All" && (
+              <span className="text-xs text-slate-500 self-center">{filtered.length} of {cdcs.length}</span>
+            )}
+          </div>
+
           <div className="space-y-3">
             {visible.map((cdc, i) => (
               <motion.div
@@ -121,7 +162,7 @@ export default function NearbyCDCCard({ lat, lng }: { lat: number; lng: number }
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.03 }}
-                className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-emerald-500/20 transition-colors"
+                className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-indigo-500/20 transition-colors"
               >
                 <div className="flex items-start justify-between gap-2 mb-1.5">
                   <div className="font-medium text-white text-sm leading-snug">{cdc.address}</div>
@@ -149,11 +190,11 @@ export default function NearbyCDCCard({ lat, lng }: { lat: number; lng: number }
             ))}
           </div>
 
-          {cdcs.length > 5 && (
+          {filtered.length > 5 && (
             <button onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1.5 mt-3 text-emerald-400 text-sm hover:text-emerald-300 transition">
+              className="flex items-center gap-1.5 mt-3 text-indigo-400 text-sm hover:text-indigo-300 transition">
               {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              {expanded ? "Show less" : `Show all ${cdcs.length}`}
+              {expanded ? "Show less" : `Show all ${filtered.length}`}
             </button>
           )}
         </>
@@ -161,3 +202,4 @@ export default function NearbyCDCCard({ lat, lng }: { lat: number; lng: number }
     </motion.div>
   );
 }
+

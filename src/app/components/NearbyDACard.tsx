@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ClipboardList, ChevronDown, ChevronUp, MapPin } from "lucide-react";
+import { ClipboardList, ChevronDown, ChevronUp, MapPin, ArrowUpDown } from "lucide-react";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -26,7 +26,7 @@ interface DAResult {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  Determined: "bg-emerald-500/20 text-emerald-300",
+  Determined: "bg-indigo-500/20 text-indigo-300",
   "Under Assessment": "bg-yellow-500/20 text-yellow-300",
   Rejected: "bg-red-500/20 text-red-300",
   "On Exhibition": "bg-blue-500/20 text-blue-300",
@@ -70,6 +70,8 @@ export default function NearbyDACard({
   const [das, setDas] = useState<DAResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [sortBy, setSortBy] = useState<"distance" | "cost" | "date" | "dwellings">("distance");
 
   useEffect(() => {
     setLoading(true);
@@ -84,15 +86,33 @@ export default function NearbyDACard({
       .finally(() => setLoading(false));
   }, [lat, lng, onDAs]);
 
+  const statuses = useMemo(() => ["All", ...Array.from(new Set(das.map((d) => d.status).filter(Boolean)))], [das]);
+
+  const filtered = useMemo(() => {
+    let result = das;
+    if (statusFilter !== "All") {
+      result = result.filter((d) => d.status === statusFilter);
+    }
+    result = [...result].sort((a, b) => {
+      switch (sortBy) {
+        case "cost": return (b.costOfDevelopment || 0) - (a.costOfDevelopment || 0);
+        case "date": return new Date(b.lodgementDate || 0).getTime() - new Date(a.lodgementDate || 0).getTime();
+        case "dwellings": return (b.dwellings || 0) - (a.dwellings || 0);
+        default: return (a.distance || 0) - (b.distance || 0);
+      }
+    });
+    return result;
+  }, [das, statusFilter, sortBy]);
+
   const underAssessment = das.filter((d) => d.status.toLowerCase().includes("assessment")).length;
   const determined = das.filter((d) => d.status.toLowerCase().includes("determined")).length;
-  const visible = expanded ? das : das.slice(0, 5);
+  const visible = expanded ? filtered : filtered.slice(0, 5);
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
       className="glass-card col-span-1 md:col-span-2">
       <div className="flex items-center gap-3 mb-1">
-        <ClipboardList className="text-emerald-400" size={22} />
+        <ClipboardList className="text-indigo-400" size={22} />
         <h2 className="text-lg font-semibold text-white">📋 Nearby Development Applications</h2>
       </div>
       <p className="text-slate-400 text-sm mb-4">
@@ -114,9 +134,9 @@ export default function NearbyDACard({
               <span className="text-yellow-300/70">Under assessment:</span>{" "}
               <span className="text-yellow-300 font-semibold">{underAssessment}</span>
             </div>
-            <div className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-sm">
-              <span className="text-emerald-300/70">Determined:</span>{" "}
-              <span className="text-emerald-300 font-semibold">{determined}</span>
+            <div className="px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-sm">
+              <span className="text-indigo-300/70">Determined:</span>{" "}
+              <span className="text-indigo-300 font-semibold">{determined}</span>
             </div>
             {(() => {
               const totalValue = das.reduce((sum, d) => sum + (d.costOfDevelopment || 0), 0);
@@ -138,6 +158,23 @@ export default function NearbyDACard({
             })()}
           </div>
 
+          <div className="flex flex-wrap gap-2 mb-4">
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-1.5 text-xs text-slate-300 outline-none">
+              {statuses.map((s) => <option key={s} value={s}>{s === "All" ? "All Statuses" : s}</option>)}
+            </select>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)}
+              className="bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-1.5 text-xs text-slate-300 outline-none">
+              <option value="distance">Sort: Nearest</option>
+              <option value="date">Sort: Most Recent</option>
+              <option value="cost">Sort: Highest Value</option>
+              <option value="dwellings">Sort: Most Dwellings</option>
+            </select>
+            {statusFilter !== "All" && (
+              <span className="text-xs text-slate-500 self-center">{filtered.length} of {das.length}</span>
+            )}
+          </div>
+
           <div className="space-y-3">
             {visible.map((da, i) => (
               <motion.div
@@ -145,7 +182,7 @@ export default function NearbyDACard({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.03 }}
-                className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-emerald-500/20 transition-colors"
+                className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-indigo-500/20 transition-colors"
               >
                 <div className="flex items-start justify-between gap-2 mb-1.5">
                   <div className="font-medium text-white text-sm leading-snug">{da.address}</div>
@@ -173,11 +210,11 @@ export default function NearbyDACard({
             ))}
           </div>
 
-          {das.length > 5 && (
+          {filtered.length > 5 && (
             <button onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1.5 mt-3 text-emerald-400 text-sm hover:text-emerald-300 transition">
+              className="flex items-center gap-1.5 mt-3 text-indigo-400 text-sm hover:text-indigo-300 transition">
               {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              {expanded ? "Show less" : `Show all ${das.length}`}
+              {expanded ? "Show less" : `Show all ${filtered.length}`}
             </button>
           )}
         </>
@@ -185,3 +222,4 @@ export default function NearbyDACard({
     </motion.div>
   );
 }
+

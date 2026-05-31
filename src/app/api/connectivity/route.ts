@@ -12,11 +12,13 @@ interface AmenityResult {
   type: string;
   name: string;
   distance: number;
+  lat: number;
+  lng: number;
 }
 
 function getStaticTrainStations(lat: number, lng: number): AmenityResult[] {
   return STATIONS
-    .map((s) => ({ type: "train", name: `${s.name} (${s.type === "metro" ? "Metro" : s.type === "light_rail" ? "Light Rail" : "Train"})`, distance: Math.round(haversineKm(lat, lng, s.lat, s.lng) * 1000) }))
+    .map((s) => ({ type: "train", name: `${s.name} (${s.type === "metro" ? "Metro" : s.type === "light_rail" ? "Light Rail" : "Train"})`, distance: Math.round(haversineKm(lat, lng, s.lat, s.lng) * 1000), lat: s.lat, lng: s.lng }))
     .filter((s) => s.distance <= 3000)
     .sort((a, b) => a.distance - b.distance);
 }
@@ -135,7 +137,7 @@ export async function GET(req: NextRequest) {
       const elLat = (el.lat as number) || (el.center as { lat: number })?.lat;
       const elLon = (el.lon as number) || (el.center as { lon: number })?.lon;
       if (!elLat || !elLon) continue;
-      amenities.push({ ...cat, distance: Math.round(haversineKm(lat, lng, elLat, elLon) * 1000) });
+      amenities.push({ ...cat, distance: Math.round(haversineKm(lat, lng, elLat, elLon) * 1000), lat: elLat, lng: elLon });
     }
   } catch {
     overpassFailed = true;

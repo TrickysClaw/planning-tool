@@ -33,7 +33,7 @@ const LABELS: Record<string, string> = {
 
 function ScoreRing({ score }: { score: number }) {
   const pct = (score / 10) * 100;
-  const color = score >= 7 ? "#10B981" : score >= 4 ? "#F59E0B" : "#EF4444";
+  const color = score >= 7 ? "var(--success)" : score >= 4 ? "var(--warning)" : "var(--danger)";
   const r = 36;
   const circ = 2 * Math.PI * r;
   const offset = circ - (pct / 100) * circ;
@@ -41,7 +41,7 @@ function ScoreRing({ score }: { score: number }) {
   return (
     <div className="relative w-24 h-24 flex-shrink-0">
       <svg width="96" height="96" className="-rotate-90">
-        <circle cx="48" cy="48" r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="6" />
+        <circle cx="48" cy="48" r={r} fill="none" stroke="var(--border)" strokeWidth="6" />
         <motion.circle
           cx="48" cy="48" r={r} fill="none" stroke={color} strokeWidth="6"
           strokeLinecap="round"
@@ -52,14 +52,14 @@ function ScoreRing({ score }: { score: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-xl font-bold text-white">{score}</span>
-        <span className="text-[10px] text-slate-400">/10</span>
+        <span className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>{score}</span>
+        <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>/10</span>
       </div>
     </div>
   );
 }
 
-export default function ConnectivityCard({ lat, lng }: { lat: number; lng: number }) {
+export default function ConnectivityCard({ lat, lng, onAmenities }: { lat: number; lng: number; onAmenities?: (amenities: { type: string; name: string; distance: number; lat: number; lng: number }[]) => void }) {
   const [data, setData] = useState<ConnectivityData | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
@@ -71,22 +71,28 @@ export default function ConnectivityCard({ lat, lng }: { lat: number; lng: numbe
     fetch(`/api/connectivity?lat=${lat}&lng=${lng}`)
       .then(r => r.json())
       .then(d => {
-        if (d.error) { setError(true); } else { setData(d); }
+        if (d.error) { setError(true); } else {
+          setData(d);
+          if (onAmenities && d.summary) {
+            const all = Object.values(d.summary).flat() as { type: string; name: string; distance: number; lat: number; lng: number }[];
+            onAmenities(all.filter(a => a.lat && a.lng));
+          }
+        }
         setLoading(false);
       })
       .catch(() => { setError(true); setLoading(false); });
-  }, [lat, lng]);
+  }, [lat, lng, onAmenities]);
 
   if (loading) {
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-        className="glass-card col-span-1 md:col-span-2">
+        className="glass-card">
         <div className="flex items-center gap-2 mb-3">
-          <Wifi className="text-emerald-400" size={20} />
-          <h3 className="font-semibold text-white text-lg">Connectivity</h3>
+          <Wifi size={20} style={{ color: "var(--accent)" }} />
+          <h3 className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>Connectivity</h3>
         </div>
-        <div className="flex items-center gap-2 text-slate-400 text-sm">
-          <div className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+        <div className="flex items-center gap-2 text-sm" style={{ color: "var(--text-muted)" }}>
+          <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
           Scanning nearby amenities...
         </div>
       </motion.div>
@@ -96,12 +102,12 @@ export default function ConnectivityCard({ lat, lng }: { lat: number; lng: numbe
   if (error || !data || data.score === undefined) {
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-        className="glass-card col-span-1 md:col-span-2">
+        className="glass-card">
         <div className="flex items-center gap-2 mb-3">
-          <Wifi className="text-emerald-400" size={20} />
-          <h3 className="font-semibold text-white text-lg">Connectivity</h3>
+          <Wifi size={20} style={{ color: "var(--accent)" }} />
+          <h3 className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>Connectivity</h3>
         </div>
-        <p className="text-sm text-slate-400">Unable to load connectivity data — the OpenStreetMap service may be temporarily busy. Try refreshing.</p>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>Unable to load connectivity data — the OpenStreetMap service may be temporarily busy. Try refreshing.</p>
       </motion.div>
     );
   }
@@ -110,21 +116,31 @@ export default function ConnectivityCard({ lat, lng }: { lat: number; lng: numbe
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-      className="glass-card col-span-1 md:col-span-2">
+      className="glass-card">
       <div className="flex items-center gap-2 mb-4">
-        <Wifi className="text-emerald-400" size={20} />
-        <h3 className="font-semibold text-white text-lg">Connectivity</h3>
+        <Wifi size={20} style={{ color: "var(--accent)" }} />
+        <h3 className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>Connectivity</h3>
+        <span className="ml-auto text-sm font-medium px-2 py-0.5 rounded" style={{ background: "var(--accent-subtle)", color: "var(--accent)" }}>
+          {label}
+        </span>
       </div>
 
-      <div className="flex items-start gap-6">
+      {/* Score + summary row */}
+      <div className="flex items-center gap-5 mb-4">
         <ScoreRing score={data.score} />
         <div className="flex-1 min-w-0">
-          <p className="text-lg font-semibold text-white mb-1">{label} Connectivity</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <p className="text-sm mb-2" style={{ color: "var(--text-secondary)" }}>
+            Walkability score based on {Object.values(data.counts).reduce((a, b) => a + b, 0)} amenities within 1km
+          </p>
+          {/* Compact category grid */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
             {Object.entries(data.counts).map(([type, count]) => (
-              <div key={type} className="flex items-center gap-1.5 text-sm text-slate-300">
-                {ICONS[type]}
-                <span>{count} {LABELS[type] || type}</span>
+              <div key={type} className="flex items-center justify-between gap-2 text-xs" style={{ color: "var(--text-secondary)" }}>
+                <span className="flex items-center gap-1.5">
+                  {ICONS[type]}
+                  <span>{LABELS[type] || type}</span>
+                </span>
+                <span className="font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>{count}</span>
               </div>
             ))}
           </div>
@@ -133,27 +149,28 @@ export default function ConnectivityCard({ lat, lng }: { lat: number; lng: numbe
 
       <button
         onClick={() => setExpanded(!expanded)}
-        className="mt-4 flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition"
+        className="btn-text"
       >
         {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         {expanded ? "Hide details" : "Show nearby amenities"}
       </button>
 
       {expanded && (
-        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-3 space-y-3">
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-3 space-y-3 pt-3" style={{ borderTop: "1px solid var(--border)" }}>
           {Object.entries(data.summary).map(([type, items]) => {
             if (!items.length) return null;
             return (
               <div key={type}>
-                <div className="flex items-center gap-1.5 mb-1">
+                <div className="flex items-center gap-1.5 mb-1.5">
                   {ICONS[type]}
-                  <span className="text-xs font-medium text-slate-300">{LABELS[type] || type}</span>
+                  <span className="text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>{LABELS[type] || type}</span>
+                  <span className="text-[10px] ml-1 px-1.5 py-0.5 rounded" style={{ background: "var(--bg-sunken)", color: "var(--text-muted)" }}>{items.length}</span>
                 </div>
-                <div className="space-y-0.5">
+                <div className="space-y-0.5 ml-5">
                   {items.map((item, i) => (
-                    <div key={i} className="flex justify-between text-xs text-slate-400 pl-5">
+                    <div key={i} className="flex justify-between text-xs" style={{ color: "var(--text-muted)" }}>
                       <span className="truncate mr-2">{item.name}</span>
-                      <span className="text-slate-500 whitespace-nowrap">{item.distance}m</span>
+                      <span className="whitespace-nowrap font-mono text-[10px]">{item.distance}m</span>
                     </div>
                   ))}
                 </div>

@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { Building2, AlertTriangle, Flame, Droplets, Landmark, TrendingUp } from "lucide-react";
+import { Building2, AlertTriangle, Flame, Droplets, Landmark, TrendingUp, Mountain, FlaskConical, Info } from "lucide-react";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -58,9 +58,9 @@ function getDevelopmentPotential(zoneCode: string, fsr: number, heritage: boolea
 }
 
 const POTENTIAL_CONFIG = {
-  green: { label: "High Development Potential", bg: "bg-emerald-500/15", border: "border-emerald-500/30", text: "text-emerald-400", dot: "bg-emerald-400" },
-  amber: { label: "Moderate Development Potential", bg: "bg-amber-500/15", border: "border-amber-500/30", text: "text-amber-400", dot: "bg-amber-400" },
-  red: { label: "Restricted Development", bg: "bg-red-500/15", border: "border-red-500/30", text: "text-red-400", dot: "bg-red-400" },
+  green: { label: "High Development Potential", bg: "var(--badge-green-bg)", border: "var(--badge-green)", text: "var(--badge-green)" },
+  amber: { label: "Moderate Development Potential", bg: "var(--badge-amber-bg)", border: "var(--badge-amber)", text: "var(--badge-amber)" },
+  red: { label: "Restricted Development", bg: "var(--badge-red-bg)", border: "var(--badge-red)", text: "var(--badge-red)" },
 };
 
 export default function BuildSummaryCard({ data }: { data: any }) {
@@ -76,15 +76,22 @@ export default function BuildSummaryCard({ data }: { data: any }) {
   const cad = cadastre?.features?.[0]?.attributes || {};
   const bush = hazard?.bushfire?.features || [];
   const flood = hazard?.flood?.features || [];
+  const landslide = hazard?.landslide?.features || [];
+  const acidSulfate = hazard?.acidSulfate || [];
 
   const zoneCode = zoning.SYM_CODE || "";
   const zoneName = zoning.LAY_CLASS || "";
   const heightM = parseFloat(height.MAX_B_H);
   const fsrNum = parseFloat(fsr.FSR);
-  const lotArea = cad.planlotarea || cad.lot_area || cad.shape_Area || cad.shape_area || 0;
-  const hasHeritage = !!heritage.HER_NAME;
+  const lotArea = cad.computedArea || cad.planlotarea || 0;
+  const hasHeritage = !!heritage.H_NAME;
+  const isHeritageItem = heritage.LAY_CLASS?.includes("Item");
+  const isHCA = heritage.LAY_CLASS?.includes("Conservation Area");
+  const heritageSig = heritage.SIG || "";
   const hasBushfire = bush.length > 0;
   const hasFlood = flood.length > 0;
+  const hasLandslide = landslide.length > 0;
+  const hasAcidSulfate = acidSulfate.length > 0;
 
   const storeys = !isNaN(heightM) ? Math.floor(heightM / 3) : null;
   const effectiveLot = lotArea > 0 ? Math.round(lotArea) : 600;
@@ -93,47 +100,64 @@ export default function BuildSummaryCard({ data }: { data: any }) {
   const config = POTENTIAL_CONFIG[potential];
 
   const warnings = [];
-  if (hasHeritage) warnings.push({ icon: <Landmark size={16} />, text: "Heritage listed — significant constraints on alterations", color: "text-red-400" });
-  if (hasBushfire) warnings.push({ icon: <Flame size={16} />, text: "Bushfire prone land — BAL assessment required, construction costs increase", color: "text-amber-400" });
-  if (hasFlood) warnings.push({ icon: <Droplets size={16} />, text: "Flood affected — floor levels must be above flood planning level", color: "text-amber-400" });
+  if (hasHeritage) {
+    const label = isHeritageItem
+      ? `Heritage Item — ${heritage.H_NAME}`
+      : isHCA
+      ? `Heritage Conservation Area — ${heritage.H_NAME}`
+      : `Heritage listed — ${heritage.H_NAME}`;
+    const sig = heritageSig ? ` (${heritageSig} significance)` : "";
+    const advice = isHeritageItem
+      ? " — major constraints on external changes"
+      : " — new builds must match neighbourhood character";
+    warnings.push({ icon: <Landmark size={16} />, text: `${label}${sig}${advice}`, cssVar: "var(--danger)" });
+  }
+  if (hasBushfire) warnings.push({ icon: <Flame size={16} />, text: `Bushfire prone${bush[0]?.attributes?.CATEGORY ? ` (${bush[0].attributes.CATEGORY})` : ""} — BAL assessment required`, cssVar: "var(--warning)" });
+  if (hasFlood) {
+    warnings.push({ icon: <Droplets size={16} />, text: "Flood affected — floor levels must be above flood planning level", cssVar: "var(--warning)" });
+  } else if (!hazard?.floodDataAvailable) {
+    warnings.push({ icon: <Info size={16} />, text: "Flood data unavailable for this council — check with your local council for flood information", cssVar: "var(--text-muted)" });
+  }
+  if (hasLandslide) warnings.push({ icon: <Mountain size={16} />, text: "Landslide risk area — geotechnical report required", cssVar: "var(--warning)" });
+  if (hasAcidSulfate) warnings.push({ icon: <FlaskConical size={16} />, text: `Acid sulfate soils — ${acidSulfate[0]?.attributes?.LABEL || "management plan required"}`, cssVar: "var(--warning)" });
 
   if (!zoneCode) return null;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-6xl mx-auto">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <div className="glass-card">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <Building2 className="text-emerald-400" size={24} />
-            <h2 className="text-xl font-bold text-white">What Can I Build Here?</h2>
+            <Building2 size={24} style={{ color: "var(--accent)" }} />
+            <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>What Can I Build Here?</h2>
           </div>
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${config.bg} border ${config.border}`}>
-            <span className={`w-2.5 h-2.5 rounded-full ${config.dot}`} />
-            <span className={`text-sm font-medium ${config.text}`}>{config.label}</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: config.bg, border: `1px solid ${config.border}` }} title={potential === "green" ? "Zone and controls favour development" : potential === "amber" ? "Some constraints may limit development" : "Significant constraints restrict development"}>
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: config.text }} />
+            <span className="text-sm font-medium" style={{ color: config.text }}>{config.label}</span>
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] mb-4">
+        <div className="p-4 rounded-xl mb-4" style={{ background: "var(--bg-sunken)", border: "1px solid var(--border)" }}>
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-2xl font-bold text-emerald-400">{zoneCode}</span>
-            <span className="text-slate-300 font-medium">{zoneName}</span>
+            <span className="text-2xl font-bold" style={{ color: "var(--accent)" }}>{zoneCode}</span>
+            <span className="font-medium" style={{ color: "var(--text-secondary)" }}>{zoneName}</span>
           </div>
-          <p className="text-slate-300 leading-relaxed">{getZoneDescription(zoneCode)}</p>
+          <p style={{ color: "var(--text-secondary)" }} className="leading-relaxed">{getZoneDescription(zoneCode)}</p>
         </div>
 
-        {/* Key metrics inline — brief summary, details in ReportCard below */}
-        <div className="flex flex-wrap gap-4 text-sm text-slate-300 mb-4">
-          {storeys !== null && <span>↕ {heightM}m (~{storeys} storeys)</span>}
-          {maxGFA !== null && <span>📐 FSR {fsr.FSR}:1 → {maxGFA.toLocaleString()}m² max</span>}
-          {lotArea > 0 && <span>📏 Lot: {effectiveLot.toLocaleString()}m²</span>}
+        {/* Key metrics inline */}
+        <div className="flex flex-wrap gap-4 text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
+          {storeys !== null && <span title="Maximum building height allowed under the LEP">↕ {heightM}m (~{storeys} storeys)</span>}
+          {maxGFA !== null && <span title="Floor Space Ratio — total floor area relative to lot size">📐 FSR {fsr.FSR}:1 → {maxGFA.toLocaleString()}m² max</span>}
+          {lotArea > 0 && <span title="Lot area from cadastral records">📏 Lot: {effectiveLot.toLocaleString()}m²</span>}
         </div>
 
         {warnings.length > 0 && (
           <div className="space-y-2">
             {warnings.map((w, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-red-500/5 border border-red-500/10">
-                <AlertTriangle className={w.color} size={18} />
-                <span className={`text-sm ${w.color}`}>{w.text}</span>
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "var(--danger-bg)", border: "1px solid var(--danger-border)" }}>
+                <AlertTriangle size={18} style={{ color: w.cssVar }} />
+                <span className="text-sm" style={{ color: w.cssVar }}>{w.text}</span>
               </div>
             ))}
           </div>

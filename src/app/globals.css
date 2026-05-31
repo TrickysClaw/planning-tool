@@ -1,29 +1,347 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * PlanView Design Tokens — "Indigo Sapphire"
+ * -------------------------------------------
+ * Target: Professional property investors/researchers (35-55)
+ * Palette: Deep indigo accent + zinc neutrals
+ * - Premium financial-analytics feel
+ * - Distinct from blue/green property portal norm
+ * - WCAG AA+ contrast ratios throughout
+ * - Colorblind-safe: indigo distinguishable from all semantic hues
+ */
+
 :root {
-  --bg: #070b14;
-  --card: rgba(13, 19, 32, 0.8);
-  --accent: #10b981;
-  --border: rgba(16, 185, 129, 0.1);
+  /* === Surfaces === */
+  --bg: #F9FAFB;
+  --bg-elevated: #FFFFFF;
+  --bg-sunken: #F3F4F6;
+  --bg-overlay: rgba(17, 24, 39, 0.6);
+
+  /* === Card === */
+  --card-bg: #FFFFFF;
+  --card-border: rgba(0, 0, 0, 0.08);
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+
+  /* === Text === */
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-muted: #6B7280;
+  --text-inverted: #FFFFFF;
+
+  /* === Primary accent (deep indigo — premium, authoritative) === */
+  --accent: #4338CA;
+  --accent-hover: #3730A3;
+  --accent-subtle: rgba(67, 56, 202, 0.06);
+  --accent-muted: rgba(67, 56, 202, 0.12);
+  --accent-border: rgba(67, 56, 202, 0.3);
+
+  /* === Semantic status === */
+  --success: #059669;
+  --success-bg: rgba(5, 150, 105, 0.07);
+  --success-border: rgba(5, 150, 105, 0.2);
+
+  --warning: #D97706;
+  --warning-bg: rgba(217, 119, 6, 0.07);
+  --warning-border: rgba(217, 119, 6, 0.2);
+
+  --danger: #DC2626;
+  --danger-bg: rgba(220, 38, 38, 0.06);
+  --danger-border: rgba(220, 38, 38, 0.15);
+
+  --info: #2563EB;
+  --info-bg: rgba(37, 99, 235, 0.06);
+  --info-border: rgba(37, 99, 235, 0.18);
+
+  /* === Borders === */
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.16);
+  --border-interactive: rgba(67, 56, 202, 0.5);
+
+  /* === Interactive === */
+  --btn-bg: #4338CA;
+  --btn-text: #FFFFFF;
+  --btn-hover: #3730A3;
+  --input-bg: #FFFFFF;
+  --input-border: rgba(0, 0, 0, 0.12);
+  --input-focus: rgba(67, 56, 202, 0.4);
+
+  /* === Badge colors (distinct hues, WCAG safe) === */
+  --badge-green: #059669;
+  --badge-green-bg: rgba(5, 150, 105, 0.1);
+  --badge-amber: #D97706;
+  --badge-amber-bg: rgba(217, 119, 6, 0.1);
+  --badge-red: #DC2626;
+  --badge-red-bg: rgba(220, 38, 38, 0.08);
+
+  /* === Misc === */
+  --radius: 12px;
+  --radius-lg: 16px;
+  --focus-ring: 0 0 0 3px rgba(67, 56, 202, 0.25);
 }
 
+.dark {
+  /* === Surfaces (deep zinc — warm, premium terminal feel) === */
+  --bg: #09090B;
+  --bg-elevated: #18181B;
+  --bg-sunken: #050506;
+  --bg-overlay: rgba(0, 0, 0, 0.8);
+
+  /* === Card === */
+  --card-bg: rgba(24, 24, 27, 0.92);
+  --card-border: rgba(255, 255, 255, 0.07);
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.04);
+
+  /* === Text === */
+  --text-primary: #FAFAFA;
+  --text-secondary: #A1A1AA;
+  --text-muted: #71717A;
+  --text-inverted: #09090B;
+
+  /* === Primary accent (bright indigo — vibrant on dark) === */
+  --accent: #818CF8;
+  --accent-hover: #A5B4FC;
+  --accent-subtle: rgba(129, 140, 248, 0.1);
+  --accent-muted: rgba(129, 140, 248, 0.16);
+  --accent-border: rgba(129, 140, 248, 0.3);
+
+  /* === Semantic status === */
+  --success: #34D399;
+  --success-bg: rgba(52, 211, 153, 0.1);
+  --success-border: rgba(52, 211, 153, 0.25);
+
+  --warning: #FBBF24;
+  --warning-bg: rgba(251, 191, 36, 0.1);
+  --warning-border: rgba(251, 191, 36, 0.2);
+
+  --danger: #FB7185;
+  --danger-bg: rgba(251, 113, 133, 0.1);
+  --danger-border: rgba(251, 113, 133, 0.2);
+
+  --info: #60A5FA;
+  --info-bg: rgba(96, 165, 250, 0.1);
+  --info-border: rgba(96, 165, 250, 0.2);
+
+  /* === Borders === */
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-interactive: rgba(129, 140, 248, 0.4);
+
+  /* === Interactive === */
+  --btn-bg: #818CF8;
+  --btn-text: #09090B;
+  --btn-hover: #A5B4FC;
+  --input-bg: rgba(24, 24, 27, 0.8);
+  --input-border: rgba(255, 255, 255, 0.1);
+  --input-focus: rgba(129, 140, 248, 0.4);
+
+  /* === Badge colors === */
+  --badge-green: #34D399;
+  --badge-green-bg: rgba(52, 211, 153, 0.12);
+  --badge-amber: #FBBF24;
+  --badge-amber-bg: rgba(251, 191, 36, 0.12);
+  --badge-red: #FB7185;
+  --badge-red-bg: rgba(251, 113, 133, 0.1);
+}
+
+/* === Base styles === */
 body {
   background: var(--bg);
-  color: #e2e8f0;
-  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text-primary);
+  overflow-x: hidden;
 }
 
+/* === Glass card (rewritten for both modes) === */
 .glass-card {
-  background: var(--card);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-  border-radius: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
+  box-shadow: var(--card-shadow);
 }
 
+.dark .glass-card {
+  backdrop-filter: blur(12px);
+}
+
+/* === Leaflet container === */
 .leaflet-container {
   width: 100%;
-  height: 400px;
-  border-radius: 16px;
+  height: 100%;
   z-index: 0;
+}
+
+.glass-card .leaflet-container {
+  border-radius: var(--radius-lg);
+}
+
+/* Aerial image tooltip for search map */
+.aerial-tooltip {
+  padding: 0 !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+}
+.aerial-tooltip .leaflet-tooltip-content {
+  margin: 0;
+}
+.aerial-tooltip .leaflet-tooltip-content > div {
+  padding: 8px;
+}
+
+/* Hide page nav when map is fullscreen */
+body.map-fullscreen .sticky {
+  display: none !important;
+}
+
+/* === Focus accessibility === */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* === Selection === */
+::selection {
+  background: var(--accent-muted);
+  color: var(--text-primary);
+}
+
+/* ============================================================
+   INTERACTIVE PRIMITIVES
+   Grouped styles for shared interactive behaviors.
+   All transitions use a single timing: 150ms ease.
+   ============================================================ */
+
+/* --- Glass card hover (subtle border glow) --- */
+.glass-card {
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.glass-card:hover {
+  border-color: var(--accent-border);
+  box-shadow: var(--card-shadow), 0 0 0 1px var(--accent-border);
+}
+
+/* --- Clickable list item (DA/CDC/CC items, HDA projects) --- */
+.clickable-item {
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+.clickable-item:hover {
+  background: var(--accent-subtle);
+  border-color: var(--accent-border);
+}
+.clickable-item:active {
+  transform: scale(0.985);
+}
+
+/* --- Form select (filters, sort dropdowns) --- */
+.form-select {
+  border-radius: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.form-select:hover {
+  border-color: var(--border-interactive);
+}
+.form-select:focus {
+  outline: none;
+  border-color: var(--border-interactive);
+  box-shadow: var(--focus-ring);
+}
+
+/* --- Text-accent button (show more, toggle links) --- */
+.btn-text {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--accent);
+  cursor: pointer;
+  transition: color 150ms ease, transform 150ms ease;
+}
+.btn-text:hover {
+  color: var(--accent-hover);
+}
+.btn-text:active {
+  transform: scale(0.96);
+}
+
+/* --- Tab button --- */
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+.tab-btn:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+.tab-btn:active {
+  transform: scale(0.96);
+}
+.tab-btn[data-active="true"] {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-color: var(--accent-border);
+}
+
+/* --- Dropdown result item (search results, history) --- */
+.dropdown-item {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+.dropdown-item:hover {
+  background: var(--accent-subtle);
+  color: var(--text-primary);
+}
+
+/* --- Icon button (clear, close) --- */
+.btn-icon {
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 150ms ease, transform 150ms ease;
+}
+.btn-icon:hover {
+  color: var(--text-primary);
+}
+.btn-icon:active {
+  transform: scale(0.9);
+}
+
+/* --- External link --- */
+.link-external {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--accent);
+  transition: color 150ms ease;
+}
+.link-external:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
 }

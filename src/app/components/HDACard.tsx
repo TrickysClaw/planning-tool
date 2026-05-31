@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Building2, ChevronDown, ChevronUp, ExternalLink, MapPin } from "lucide-react";
 
@@ -17,21 +17,21 @@ interface HDAProject {
   distance?: number;
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  Residential: "bg-blue-500/20 text-blue-300",
-  "Mixed-use": "bg-purple-500/20 text-purple-300",
-  "Build-to-Rent": "bg-cyan-500/20 text-cyan-300",
-  Commercial: "bg-amber-500/20 text-amber-300",
-  Subdivision: "bg-orange-500/20 text-orange-300",
-  "Seniors housing": "bg-pink-500/20 text-pink-300",
+const TYPE_COLORS: Record<string, { bg: string; text: string }> = {
+  Residential: { bg: "rgba(59, 130, 246, 0.12)", text: "#2563EB" },
+  "Mixed-use": { bg: "rgba(139, 92, 246, 0.12)", text: "#7C3AED" },
+  "Build-to-Rent": { bg: "rgba(6, 182, 212, 0.12)", text: "#0891B2" },
+  Commercial: { bg: "rgba(217, 119, 6, 0.12)", text: "#B45309" },
+  Subdivision: { bg: "rgba(234, 88, 12, 0.12)", text: "#C2410C" },
+  "Seniors housing": { bg: "rgba(219, 39, 119, 0.12)", text: "#BE185D" },
 };
 
-const REC_COLORS: Record<string, string> = {
-  "Declare SSD": "bg-emerald-500/20 text-emerald-300",
-  "Not Declare": "bg-red-500/20 text-red-300",
-  Deferred: "bg-yellow-500/20 text-yellow-300",
-  "Existing SSD pathway": "bg-blue-500/20 text-blue-300",
-  Withdrawn: "bg-slate-500/20 text-slate-300",
+const REC_COLORS: Record<string, { bg: string; text: string }> = {
+  "Declare SSD": { bg: "var(--success-bg)", text: "var(--success)" },
+  "Not Declare": { bg: "var(--danger-bg)", text: "var(--danger)" },
+  Deferred: { bg: "var(--warning-bg)", text: "var(--warning)" },
+  "Existing SSD pathway": { bg: "var(--info-bg)", text: "var(--info)" },
+  Withdrawn: { bg: "rgba(100, 116, 139, 0.1)", text: "#64748B" },
 };
 
 const REC_LABELS: Record<string, string> = {
@@ -42,11 +42,11 @@ const REC_LABELS: Record<string, string> = {
   Withdrawn: "🚫 Pulled out",
 };
 
-function recColor(rec: string): string {
+function recColor(rec: string): { bg: string; text: string } {
   for (const [key, val] of Object.entries(REC_COLORS)) {
     if (rec.includes(key)) return val;
   }
-  return "bg-slate-500/20 text-slate-300";
+  return { bg: "rgba(100, 116, 139, 0.1)", text: "#64748B" };
 }
 
 export default function HDACard({
@@ -54,15 +54,20 @@ export default function HDACard({
   lat,
   lng,
   onProjects,
+  onItemClick,
 }: {
   address: string;
   lat?: number;
   lng?: number;
   onProjects?: (projects: HDAProject[]) => void;
+  onItemClick?: (item: { lat: number; lng: number }) => void;
 }) {
   const [projects, setProjects] = useState<HDAProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [recFilter, setRecFilter] = useState("All");
+  const [sortBy, setSortBy] = useState<"distance" | "dwellings" | "date">("distance");
 
   useEffect(() => {
     if (!address) return;
@@ -80,72 +85,106 @@ export default function HDACard({
       .catch(() => setLoading(false));
   }, [address, lat, lng, onProjects]);
 
+  const types = useMemo(() => ["All", ...Array.from(new Set(projects.map((p) => p.type).filter(Boolean)))], [projects]);
+  const recs = useMemo(() => ["All", ...Array.from(new Set(projects.map((p) => p.recommendation).filter(Boolean)))], [projects]);
+
+  const filtered = useMemo(() => {
+    let result = projects;
+    if (typeFilter !== "All") result = result.filter((p) => p.type === typeFilter);
+    if (recFilter !== "All") result = result.filter((p) => p.recommendation === recFilter);
+    result = [...result].sort((a, b) => {
+      switch (sortBy) {
+        case "dwellings": return (b.dwellings || 0) - (a.dwellings || 0);
+        case "date": return new Date(b.briefing_date || 0).getTime() - new Date(a.briefing_date || 0).getTime();
+        default: return (a.distance || 0) - (b.distance || 0);
+      }
+    });
+    return result;
+  }, [projects, typeFilter, recFilter, sortBy]);
+
+  const visible = expanded ? filtered : filtered.slice(0, 3);
+  const remaining = filtered.length - 3;
+
   if (loading) {
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-        className="glass-card col-span-1 md:col-span-2">
+        className="glass-card">
         <div className="flex items-center gap-2 mb-3">
-          <Building2 className="text-emerald-400" size={20} />
-          <h3 className="font-semibold text-white text-lg">Big Housing Projects Nearby</h3>
+          <Building2 size={20} style={{ color: "var(--accent)" }} />
+          <h3 className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>Big Housing Projects Nearby</h3>
         </div>
-        <div className="flex items-center gap-2 text-slate-400 text-sm">
-          <div className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+        <div className="flex items-center gap-2 text-sm" style={{ color: "var(--text-muted)" }}>
+          <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
           Checking for major developments nearby...
         </div>
       </motion.div>
     );
   }
 
-  const visible = expanded ? projects : projects.slice(0, 3);
-  const remaining = projects.length - 3;
-
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-      className="glass-card col-span-1 md:col-span-2">
+      className="glass-card">
       <div className="flex items-center gap-2 mb-2">
-        <Building2 className="text-emerald-400" size={20} />
-        <h3 className="font-semibold text-white text-lg">Big Housing Projects Nearby</h3>
+        <Building2 size={20} style={{ color: "var(--accent)" }} />
+        <h3 className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>Big Housing Projects Nearby</h3>
         {projects.length > 0 && (
-          <span className="ml-auto text-xs text-slate-400">{projects.length} found</span>
+          <span className="ml-auto text-xs" style={{ color: "var(--text-muted)" }}>{projects.length} found</span>
         )}
       </div>
-      <p className="text-xs text-slate-500 mb-4">
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
         Large housing developments proposed near you — these skip council and get fast-tracked by the NSW government.
       </p>
 
       {projects.length === 0 ? (
-        <p className="text-sm text-slate-400">No HDA projects found near this address</p>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>No HDA projects found near this address</p>
       ) : (
-        <div className="space-y-3">
+        <>
+          <div className="flex flex-wrap gap-2 mb-4">
+            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="form-select">
+              {types.map((t) => <option key={t} value={t}>{t === "All" ? "All Types" : t}</option>)}
+            </select>
+            <select value={recFilter} onChange={(e) => setRecFilter(e.target.value)} className="form-select">
+              {recs.map((r) => <option key={r} value={r}>{r === "All" ? "All Recommendations" : r}</option>)}
+            </select>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="form-select">
+              <option value="distance">Sort: Nearest</option>
+              <option value="date">Sort: Most Recent</option>
+              <option value="dwellings">Sort: Most Dwellings</option>
+            </select>
+            {(typeFilter !== "All" || recFilter !== "All") && (
+              <span className="text-xs self-center" style={{ color: "var(--text-muted)" }}>{filtered.length} of {projects.length}</span>
+            )}
+          </div>
+          <div className="space-y-3">
           {visible.map((p) => (
-            <div key={p.eoi_number} className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
-              <div className="flex flex-wrap items-start gap-2 mb-1.5">
-                <span className="text-xs text-slate-500 font-mono">EOI {p.eoi_number}</span>
-                <span className={`px-2 py-0.5 rounded text-xs ${TYPE_COLORS[p.type] || "bg-slate-500/20 text-slate-300"}`}>
+            <div key={p.eoi_number} className="clickable-item"
+              onClick={() => p.coords?.lat && p.coords?.lng && onItemClick?.({ lat: p.coords.lat, lng: p.coords.lng })}
+            >              <div className="flex flex-wrap items-start gap-2 mb-1.5">
+                <span className="text-xs font-mono" style={{ color: "var(--text-muted)" }}>EOI {p.eoi_number}</span>
+                <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: (TYPE_COLORS[p.type] || { bg: "rgba(100,116,139,0.1)", text: "#64748B" }).bg, color: (TYPE_COLORS[p.type] || { bg: "rgba(100,116,139,0.1)", text: "#64748B" }).text }}>
                   {p.type || "Unknown"}
                 </span>
                 {p.dwellings != null && (
-                  <span className="text-xs text-slate-400">🏠 {p.dwellings.toLocaleString()} dwellings</span>
+                  <span className="text-xs" style={{ color: "var(--text-muted)" }}>🏠 {p.dwellings.toLocaleString()} dwellings</span>
                 )}
-                <span className={`px-2 py-0.5 rounded text-xs ${recColor(p.recommendation)}`}>
+                <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: recColor(p.recommendation).bg, color: recColor(p.recommendation).text }}>
                   {Object.entries(REC_LABELS).find(([k]) => p.recommendation?.includes(k))?.[1] || p.recommendation || "—"}
                 </span>
               </div>
 
               <div className="flex items-start gap-1.5 mb-1.5">
-                <MapPin size={12} className="text-slate-500 mt-0.5 flex-shrink-0" />
-                <span className="text-sm text-slate-300">{p.address}</span>
+                <MapPin size={12} style={{ color: "var(--text-muted)" }} className="mt-0.5 flex-shrink-0" />
+                <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{p.address}</span>
               </div>
 
               {p.description && (
-                <p className="text-xs text-slate-400 mb-2 leading-relaxed">{p.description}</p>
+                <p className="text-xs mb-2 leading-relaxed" style={{ color: "var(--text-muted)" }}>{p.description}</p>
               )}
 
               <div className="flex items-center gap-3 text-xs">
-                <span className="text-slate-500">Briefed: {p.briefing_date}</span>
+                <span style={{ color: "var(--text-muted)" }}>Briefed: {p.briefing_date}</span>
                 {p.briefingUrl && (
-                  <a href={p.briefingUrl} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 transition">
+                  <a href={p.briefingUrl} target="_blank" rel="noopener noreferrer" className="link-external">
                     <ExternalLink size={10} />
                     View HDA Record
                   </a>
@@ -153,15 +192,15 @@ export default function HDACard({
               </div>
             </div>
           ))}
-        </div>
-      )}
+          </div>
 
-      {remaining > 0 && (
-        <button onClick={() => setExpanded(!expanded)}
-          className="mt-3 flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition">
-          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          {expanded ? "Show less" : `Show ${remaining} more`}
-        </button>
+          {remaining > 0 && (
+            <button onClick={() => setExpanded(!expanded)} className="btn-text mt-3">
+              {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              {expanded ? "Show less" : `Show ${remaining} more`}
+            </button>
+          )}
+        </>
       )}
     </motion.div>
   );

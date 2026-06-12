@@ -4,26 +4,27 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { MapMarker } from "./PlanningMap";
 
+// Restrained, enterprise-friendly palette. No neon.
 const MARKER_COLORS: Record<string, string> = {
-  search: "#10B981",
-  "hda-declared": "#06B6D4",
-  "hda-not-declared": "#F43F5E",
-  "hda-deferred": "#8B5CF6",
-  ssda: "#6366F1",
-  "da-under-assessment": "#FBBF24",
-  "da-determined": "#38BDF8",
-  "da-rejected": "#F43F5E",
-  "cdc-under-assessment": "#FB923C",
-  "cdc-determined": "#A78BFA",
-  "cdc-rejected": "#F43F5E",
-  "cc-determined": "#14B8A6",
-  "amenity-train": "#3B82F6",
-  "amenity-bus": "#EAB308",
-  "amenity-school": "#A855F7",
-  "amenity-shopping": "#EC4899",
-  "amenity-medical": "#EF4444",
-  "amenity-park": "#22C55E",
-  "amenity-dining": "#F97316",
+  search: "#16A34A",
+  "hda-declared": "#0F766E",
+  "hda-not-declared": "#DC2626",
+  "hda-deferred": "#CA8A04",
+  ssda: "#4F46E5",
+  "da-under-assessment": "#CA8A04",
+  "da-determined": "#0284C7",
+  "da-rejected": "#DC2626",
+  "cdc-under-assessment": "#D97706",
+  "cdc-determined": "#4F46E5",
+  "cdc-rejected": "#DC2626",
+  "cc-determined": "#0D9488",
+  "amenity-train": "#0284C7",
+  "amenity-bus": "#CA8A04",
+  "amenity-school": "#4F46E5",
+  "amenity-shopping": "#9333EA",
+  "amenity-medical": "#DC2626",
+  "amenity-park": "#16A34A",
+  "amenity-dining": "#D97706",
 };
 
 type LayerCategory = "hda" | "da" | "cdc" | "cc" | "amenities";
@@ -40,14 +41,14 @@ if (typeof document !== "undefined") {
 
 function getZoneColor(zoneCode?: string): string {
   const base = zoneCode?.replace(/\s.*/, "") || "";
-  if (base === "R2") return "#FCD34D";
-  if (base === "R3") return "#FB923C";
-  if (base === "R4") return "#EF4444";
-  if (["B1", "B2", "B4", "MU1"].includes(base)) return "#A78BFA";
-  if (base.startsWith("E") || base.startsWith("C")) return "#34D399";
-  if (base.startsWith("IN")) return "#94A3B8";
-  if (base.startsWith("RE")) return "#6EE7B7";
-  return "#10B981";
+  if (base === "R2") return "#CA8A04";
+  if (base === "R3") return "#EA580C";
+  if (base === "R4") return "#DC2626";
+  if (["B1", "B2", "B4", "MU1"].includes(base)) return "#4F46E5";
+  if (base.startsWith("E") || base.startsWith("C")) return "#16A34A";
+  if (base.startsWith("IN")) return "#64748B";
+  if (base.startsWith("RE")) return "#0D9488";
+  return "#16A34A";
 }
 
 export default function PlanningMapInner({
@@ -220,8 +221,8 @@ export default function PlanningMapInner({
     const searchIcon = L.divIcon({
       html: `<div style="position:relative;display:flex;align-items:center;justify-content:center">
         <div style="position:absolute;top:-16px;left:-16px;width:56px;height:56px;background:rgba(16,185,129,0.1);border-radius:50%;animation:pulse-glow 2s ease-in-out infinite"></div>
-        <div style="width:28px;height:28px;background:#fff;border-radius:50%;border:4px solid #10B981;box-shadow:0 0 16px rgba(16,185,129,0.5),0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      <div style="width:28px;height:28px;background:#fff;border-radius:50%;border:4px solid #16A34A;box-shadow:0 0 16px rgba(22,163,74,0.45),0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
         </div>
       </div>`,
       iconSize: [28, 28],
@@ -321,23 +322,23 @@ export default function PlanningMapInner({
   }, [focusPoint]);
 
   const LAYER_TOGGLES: { key: LayerCategory; label: string; color: string }[] = [
-    { key: "hda", label: "HDA", color: "#06B6D4" },
-    { key: "da", label: "DA", color: "#FBBF24" },
-    { key: "cdc", label: "CDC", color: "#A78BFA" },
-    { key: "cc", label: "CC", color: "#14B8A6" },
-    { key: "amenities", label: "Amenities", color: "#22C55E" },
+    { key: "hda", label: "HDA", color: "#0F766E" },
+    { key: "da", label: "DA", color: "#CA8A04" },
+    { key: "cdc", label: "CDC", color: "#4F46E5" },
+    { key: "cc", label: "CC", color: "#0D9488" },
+    { key: "amenities", label: "Amenities", color: "#16A34A" },
   ];
 
   const LEGEND_ITEMS = [
-    { shape: "circle", size: 12, color: "#fff", border: "3px solid #10B981", label: "Your Property" },
-    { shape: "circle", size: 8, color: "#06B6D4", label: "HDA Fast-tracked" },
-    { shape: "circle", size: 8, color: "#FBBF24", label: "DA Under Assessment" },
-    { shape: "circle", size: 8, color: "#38BDF8", label: "DA Determined" },
-    { shape: "circle", size: 8, color: "#A78BFA", label: "CDC" },
-    { shape: "circle", size: 8, color: "#14B8A6", label: "CC" },
-    { shape: "square", size: 7, color: "#3B82F6", label: "Train" },
-    { shape: "square", size: 7, color: "#22C55E", label: "Park" },
-    { shape: "square", size: 7, color: "#EC4899", label: "Shops" },
+    { shape: "circle", size: 12, color: "#fff", border: "3px solid #16A34A", label: "Your Property" },
+    { shape: "circle", size: 8, color: "#0F766E", label: "HDA Fast-tracked" },
+    { shape: "circle", size: 8, color: "#CA8A04", label: "DA Under Assessment" },
+    { shape: "circle", size: 8, color: "#0284C7", label: "DA Determined" },
+    { shape: "circle", size: 8, color: "#4F46E5", label: "CDC" },
+    { shape: "circle", size: 8, color: "#0D9488", label: "CC" },
+    { shape: "square", size: 7, color: "#0284C7", label: "Train" },
+    { shape: "square", size: 7, color: "#16A34A", label: "Park" },
+    { shape: "square", size: 7, color: "#9333EA", label: "Shops" },
     { shape: "dashed", size: 12, color: "#64748B", label: "LGA Boundary" },
   ];
 

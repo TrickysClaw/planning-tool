@@ -343,7 +343,7 @@ export default function PlanningMapInner({
 
   return (
     <div
-      className={`glass-card overflow-hidden transition-all duration-300 ${fullscreen ? "fixed inset-0 z-[9999] rounded-none flex flex-col" : "mt-4"}`}
+      className={`glass-card overflow-hidden transition-all duration-300 flex flex-col ${fullscreen ? "fixed inset-0 z-[9999] rounded-none" : "h-full min-h-[55vh]"}`}
       style={fullscreen ? { isolation: "isolate", padding: 0, margin: 0, borderRadius: 0 } : { padding: 0 }}
     >
       {/* Fullscreen header */}
@@ -501,7 +501,7 @@ export default function PlanningMapInner({
       )}
 
       {/* Map container */}
-      <div className={`${fullscreen ? "flex-1 min-h-0" : "h-[450px] xl:h-[calc(100vh-8rem)] xl:min-h-[500px] xl:max-h-[800px]"}`}>
+      <div className={`${fullscreen ? "flex-1 min-h-0" : "h-[55vh] xl:h-full xl:min-h-0 flex-1"}`}>
         <div ref={containerRef} className="w-full h-full" />
       </div>
     </div>

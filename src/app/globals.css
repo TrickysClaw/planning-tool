@@ -76,6 +76,25 @@
   --radius: 10px;
   --radius-lg: 14px;
   --focus-ring: 0 0 0 2px rgba(24, 24, 27, 0.2);
+
+  /* === Restrained marker / category palette ===
+     Muted, enterprise-friendly. No neon. Used by the map + legends. */
+  --m-property: #16A34A;   /* the searched lot — green */
+  --m-hda: #0F766E;        /* teal */
+  --m-da-active: #CA8A04;  /* amber — under assessment */
+  --m-da-done: #0284C7;    /* blue — determined */
+  --m-da-reject: #DC2626;  /* red — refused */
+  --m-cdc: #4F46E5;        /* indigo */
+  --m-cc: #0D9488;         /* teal-green */
+  --m-neutral: #64748B;    /* slate — boundaries / amenities */
+
+  /* === Zoning category palette (muted) === */
+  --z-residential: #CA8A04; /* amber */
+  --z-medium: #EA580C;      /* orange */
+  --z-high: #DC2626;        /* red */
+  --z-business: #4F46E5;    /* indigo */
+  --z-environment: #16A34A; /* green */
+  --z-industry: #64748B;    /* slate */
 }
 
 .dark {
@@ -140,6 +159,24 @@
   --badge-amber-bg: rgba(250, 204, 21, 0.1);
   --badge-red: #FB7185;
   --badge-red-bg: rgba(251, 113, 133, 0.08);
+
+  /* === Restrained marker / category palette (dark) === */
+  --m-property: #4ADE80;
+  --m-hda: #2DD4BF;
+  --m-da-active: #FACC15;
+  --m-da-done: #38BDF8;
+  --m-da-reject: #FB7185;
+  --m-cdc: #818CF8;
+  --m-cc: #2DD4BF;
+  --m-neutral: #94A3B8;
+
+  /* === Zoning category palette (dark) === */
+  --z-residential: #FACC15;
+  --z-medium: #FB923C;
+  --z-high: #FB7185;
+  --z-business: #818CF8;
+  --z-environment: #4ADE80;
+  --z-industry: #94A3B8;
 }
 
 /* === Base styles === */
@@ -339,4 +376,120 @@ body.map-fullscreen .sticky {
 .link-external:hover {
   color: var(--accent-hover);
   text-decoration: underline;
+}
+
+/* ============================================================
+   REDESIGN PRIMITIVES
+   Map-first workspace, stat tiles, section labels, pills.
+   ============================================================ */
+
+/* --- Eyebrow / section label (uppercase mono-ish meta text) --- */
+.eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* --- Stat tile (key metric blocks) --- */
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+}
+.stat-tile .stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+.stat-tile .stat-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* --- Status pill --- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--border);
+  background: var(--bg-sunken);
+  color: var(--text-secondary);
+}
+.pill .pill-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+}
+
+/* --- Map workspace: panel + map fill the viewport on xl --- */
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 1280px) {
+  .workspace {
+    grid-template-columns: minmax(420px, 460px) 1fr;
+    height: calc(100vh - 64px);
+  }
+  .workspace-panel {
+    height: 100%;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    overscroll-behavior: contain;
+  }
+  .workspace-map {
+    height: 100%;
+    position: sticky;
+    top: 0;
+  }
+}
+
+/* Slim, calm scrollbar for the workspace panel */
+.workspace-panel::-webkit-scrollbar {
+  width: 8px;
+}
+.workspace-panel::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+}
+.workspace-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* --- Top nav pill segment (shared across pages) --- */
+.nav-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: background 150ms ease, color 150ms ease;
+}
+.nav-seg:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+.nav-seg[data-active="true"] {
+  background: var(--accent-subtle);
+  color: var(--text-primary);
 }

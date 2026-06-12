@@ -373,114 +373,106 @@ function AddressPage() {
     <main className="min-h-screen">
       {/* Compact top bar with search */}
       <div className="sticky top-0 z-40 backdrop-blur-xl border-b" style={{ background: "var(--bg-elevated)", borderColor: "var(--border)" }}>
-        <div className="max-w-[1600px] mx-auto px-4 py-3 flex items-center justify-center gap-4">
-          <Link href="/" className="font-semibold text-sm shrink-0 transition" style={{ color: "var(--accent)" }}>
-            PlanView
+        <div className="max-w-[1800px] mx-auto px-4 h-16 flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-2 shrink-0">
+            <span className="flex items-center justify-center w-7 h-7 rounded-md" style={{ background: "var(--accent)", color: "var(--text-inverted)" }}>
+              <Building2 size={16} />
+            </span>
+            <span className="font-semibold text-sm tracking-tight hidden sm:inline" style={{ color: "var(--text-primary)" }}>
+              PlanView
+            </span>
           </Link>
           <div className="flex-1 max-w-2xl">
             <SearchBar compact onSelect={handleSelect} searchHistory={searchHistory} onHistoryClick={handleHistoryClick} />
           </div>
-          <Link href="/search" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition shrink-0" style={{ color: "var(--text-muted)" }}>
-            <SlidersHorizontal size={14} />
-            <span className="hidden sm:inline">Site Search</span>
-          </Link>
-          <Link href="/ssda" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition shrink-0" style={{ color: "var(--text-muted)" }}>
-            <Construction size={14} />
-            <span className="hidden sm:inline">Major Projects</span>
-          </Link>
+          <nav className="hidden md:flex items-center gap-1 shrink-0">
+            <Link href="/search" className="nav-seg">
+              <SlidersHorizontal size={14} />
+              <span className="hidden lg:inline">Site Search</span>
+            </Link>
+            <Link href="/ssda" className="nav-seg">
+              <Construction size={14} />
+              <span className="hidden lg:inline">Major Projects</span>
+            </Link>
+          </nav>
           <ThemeToggle />
         </div>
       </div>
 
-      <div className="px-4 py-6">
       {loading && (
-        <div className="max-w-[1600px] mx-auto mt-6 flex flex-col items-center justify-center py-24">
+        <div className="px-4 mt-6 flex flex-col items-center justify-center py-24">
           <div className="relative mb-6">
-            <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
-            <div className="absolute inset-0 w-16 h-16 border-4 border-b-transparent rounded-full animate-spin" style={{ borderColor: "var(--border)", borderBottomColor: "transparent", animationDirection: "reverse", animationDuration: "1.5s" }} />
+            <div className="w-12 h-12 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
           </div>
-          <p className="text-lg font-medium mb-2" style={{ color: "var(--text-primary)" }}>Analysing property</p>
+          <p className="text-base font-medium mb-1" style={{ color: "var(--text-primary)" }}>Analysing property</p>
           <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-            Pulling planning controls, hazards, nearby activity, and market data...
+            Pulling planning controls, hazards and nearby activity...
           </p>
         </div>
       )}
 
-      {data && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-[1600px] mx-auto">
-          {/* Jump links */}
-          <nav className="flex items-center gap-4 mb-4 overflow-x-auto pb-1 text-xs border-b" style={{ borderColor: "var(--border)" }}>
-            {[
-              { id: "summary", label: "Summary" },
-              { id: "context", label: "Context" },
-              { id: "activity", label: "Activity" },
-              { id: "map", label: "Map" },
-            ].map((link) => (
-              <a key={link.id} href={`#${link.id}`} className="pb-2 transition whitespace-nowrap hover:opacity-100 opacity-60" style={{ color: "var(--text-primary)", borderBottom: "1px solid transparent" }}>
-                {link.label}
-              </a>
-            ))}
-          </nav>
+      {!loading && !data && (
+        <div className="px-4 mt-6 flex flex-col items-center justify-center py-28 text-center">
+          <span className="flex items-center justify-center w-12 h-12 rounded-xl mb-4" style={{ background: "var(--bg-sunken)", border: "1px solid var(--border)", color: "var(--text-muted)" }}>
+            <MapPinned size={22} />
+          </span>
+          <p className="text-base font-medium mb-1" style={{ color: "var(--text-primary)" }}>Search an address to begin</p>
+          <p className="text-sm max-w-sm" style={{ color: "var(--text-muted)" }}>
+            Enter any NSW address above to see its zoning, build envelope, hazards and nearby development activity.
+          </p>
+        </div>
+      )}
 
-          {/* Build Summary — the #1 question answered immediately */}
-          <section id="summary">
-            <BuildSummaryCard data={data} />
-          </section>
-
+      {data && coords && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-[1800px] mx-auto px-4 py-4">
           {/* Site details strip */}
-          <div className="mt-4">
+          <div className="mb-4">
             <ReportCard data={data} />
           </div>
 
-          {coords && (
-            <div className="mt-6 flex flex-col xl:flex-row gap-6">
-              {/* Left column: cards */}
-              <div className="flex-1 min-w-0 space-y-4">
-                {/* Connectivity + Perception side by side on md+ */}
-                <section id="context" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="relative glass-card">
-                    <div className="absolute inset-0 z-10 rounded-2xl flex items-center justify-center backdrop-blur-[2px]" style={{ background: "var(--bg-overlay, rgba(0,0,0,0.03))" }}>
-                      <span className="px-3 py-1.5 rounded-full text-xs font-medium" style={{ background: "var(--card-bg)", border: "1px solid var(--border)", color: "var(--text-muted)" }}>Coming soon</span>
-                    </div>
-                    <div className="opacity-40 pointer-events-none select-none">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Wifi size={20} style={{ color: "var(--accent)" }} />
-                        <h3 className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>Connectivity Score</h3>
-                      </div>
-                      <p className="text-sm" style={{ color: "var(--text-muted)" }}>Transport, schools, shops, medical &amp; parks nearby.</p>
-                    </div>
+          {/* Map-first workspace: scrolling data panel + persistent map */}
+          <div className="workspace">
+            {/* Data panel */}
+            <div className="workspace-panel space-y-4">
+              <section id="summary">
+                <BuildSummaryCard data={data} />
+              </section>
+
+              <section id="context" className="grid grid-cols-1 gap-4">
+                <PerceptionCard address={data.address} lat={coords?.lat} lng={coords?.lng} initialData={data.perception} />
+                <div className="relative glass-card">
+                  <div className="absolute inset-0 z-10 rounded-2xl flex items-center justify-center backdrop-blur-[2px]" style={{ background: "var(--bg-overlay, rgba(0,0,0,0.03))" }}>
+                    <span className="px-3 py-1.5 rounded-full text-xs font-medium" style={{ background: "var(--card-bg)", border: "1px solid var(--border)", color: "var(--text-muted)" }}>Coming soon</span>
                   </div>
-                  <PerceptionCard address={data.address} lat={coords?.lat} lng={coords?.lng} initialData={data.perception} />
-                </section>
-
-                {/* HDA */}
-                <HDACard address={data.address} lat={coords.lat} lng={coords.lng} onProjects={handleHDAProjects} onItemClick={handleItemClick} initialData={data.hda} />
-
-                {/* DA + CDC tabbed */}
-                <section id="activity">
-                  <NearbyActivityCard lat={coords.lat} lng={coords.lng} onDAs={handleDAResults} onCDCs={handleCDCResults} onCCs={handleCCResults} onItemClick={handleItemClick} initialDA={data.da} initialCDC={data.cdc} initialCC={data.cc} />
-                </section>
-              </div>
-
-              {/* Right column: sticky map */}
-              <div className="xl:w-[480px] shrink-0" id="map">
-                <div className="xl:sticky xl:top-20">
-                  <PlanningMap lat={coords.lat} lng={coords.lng} markers={[...hdaMarkers, ...daMarkers, ...cdcMarkers, ...ccMarkers, ...amenityMarkers]} polygon={lotPolygon} lgaBoundary={lgaBoundary} zoneCode={zoneCode} streetViewUrl={streetViewUrl || undefined} focusPoint={focusPoint} />
+                  <div className="opacity-40 pointer-events-none select-none">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Wifi size={20} style={{ color: "var(--accent)" }} />
+                      <h3 className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>Connectivity Score</h3>
+                    </div>
+                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>Transport, schools, shops, medical &amp; parks nearby.</p>
+                  </div>
                 </div>
-              </div>
+              </section>
+
+              <HDACard address={data.address} lat={coords.lat} lng={coords.lng} onProjects={handleHDAProjects} onItemClick={handleItemClick} initialData={data.hda} />
+
+              <section id="activity">
+                <NearbyActivityCard lat={coords.lat} lng={coords.lng} onDAs={handleDAResults} onCDCs={handleCDCResults} onCCs={handleCCResults} onItemClick={handleItemClick} initialDA={data.da} initialCDC={data.cdc} initialCC={data.cc} />
+              </section>
+
+              <button onClick={() => setShowGuide(true)} className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition-all duration-200" style={{ background: "var(--accent-subtle)", border: "1px solid var(--accent-border)", color: "var(--accent)" }}>
+                <BookOpen size={18} />
+                <span className="font-medium text-sm">What do these planning terms mean?</span>
+              </button>
             </div>
-          )}
+
+            {/* Persistent map canvas */}
+            <div className="workspace-map" id="map">
+              <PlanningMap lat={coords.lat} lng={coords.lng} markers={[...hdaMarkers, ...daMarkers, ...cdcMarkers, ...ccMarkers, ...amenityMarkers]} polygon={lotPolygon} lgaBoundary={lgaBoundary} zoneCode={zoneCode} streetViewUrl={streetViewUrl || undefined} focusPoint={focusPoint} />
+            </div>
+          </div>
         </motion.div>
       )}
-
-      {/* Planning Guide Button */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="flex justify-center mt-12">
-        <button onClick={() => setShowGuide(true)} className="flex items-center gap-2 px-6 py-3 rounded-xl transition-all duration-200" style={{ background: "var(--accent-subtle)", border: "1px solid var(--accent-border)", color: "var(--accent)" }}>
-          <BookOpen size={18} />
-          <span className="font-medium">What do these planning terms mean?</span>
-        </button>
-      </motion.div>
-      </div>
 
       {/* Planning Guide Modal */}
       <AnimatePresence>

@@ -130,7 +130,50 @@ export default function MapBackgroundInner() {
   const [dotPositions, setDotPositions] = useState<{ x: number; y: number }[]>([]);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const panelIdx = selectedIdx ?? hoveredIdx;
+
+  function handleDotEnter(i: number) {
+    if (selectedIdx !== null) return;
+    if (hoverTimeoutRef.current) { clearTimeout(hoverTimeoutRef.current); hoverTimeoutRef.current = null; }
+    setHoveredIdx(i);
+  }
+  function handleDotLeave() {
+    if (selectedIdx !== null) return;
+    hoverTimeoutRef.current = setTimeout(() => setHoveredIdx(null), 150);
+  }
+
+  // Compute nudged positions with collision avoidance
+  function computeFinalPositions(positions: { x: number; y: number }[]): { x: number; y: number }[] {
+    const cx = typeof window !== "undefined" ? window.innerWidth / 2 : 600;
+    const cy = typeof window !== "undefined" ? window.innerHeight * 0.5 : 400;
+    const zoneW = 360, zoneH = 140;
+    const MIN_SPACING = 48;
+
+    const final = positions.map(pos => {
+      let x = pos.x, y = pos.y;
+      if (Math.abs(x - cx) < zoneW && Math.abs(y - cy) < zoneH) {
+        if (x < cx) x = cx - zoneW - 60;
+        else x = cx + zoneW + 60;
+      }
+      return { x, y };
+    });
+
+    // Resolve collisions: push overlapping dots apart vertically
+    for (let i = 0; i < final.length; i++) {
+      for (let j = i + 1; j < final.length; j++) {
+        const dx = Math.abs(final[i].x - final[j].x);
+        const dy = Math.abs(final[i].y - final[j].y);
+        if (dx < MIN_SPACING && dy < MIN_SPACING) {
+          const overlap = MIN_SPACING - dy;
+          final[i].y -= overlap / 2 + 4;
+          final[j].y += overlap / 2 + 4;
+        }
+      }
+    }
+
+    return final;
+  }
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -369,18 +412,18 @@ export default function MapBackgroundInner() {
             background: var(--accent);
             opacity: 0.8;
             transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.2);
+            box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.15);
           }
           .dark .hotspot-dot {
-            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+            box-shadow: 0 0 0 3px rgba(228, 228, 231, 0.15);
           }
           .hotspot-dot.active {
             transform: scale(1.6);
             opacity: 1;
-            box-shadow: 0 0 0 6px rgba(67, 56, 202, 0.25), 0 0 20px rgba(67, 56, 202, 0.15);
+            box-shadow: 0 0 0 6px rgba(24, 24, 27, 0.15), 0 0 20px rgba(24, 24, 27, 0.08);
           }
           .dark .hotspot-dot.active {
-            box-shadow: 0 0 0 6px rgba(129, 140, 248, 0.25), 0 0 20px rgba(129, 140, 248, 0.15);
+            box-shadow: 0 0 0 6px rgba(228, 228, 231, 0.15), 0 0 20px rgba(228, 228, 231, 0.08);
           }
           .hotspot-ping {
             position: absolute;
@@ -545,43 +588,57 @@ export default function MapBackgroundInner() {
         `}</style>
         <div ref={mapRef} className="absolute inset-0" style={{ width: "100%", height: "100%" }} />
         {/* Feature hotspots — rendered below the canvas so they're hidden until mouse reveals them */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 1 }}>
-          {FEATURE_POINTS.map((fp, i) => {
-            const pos = dotPositions[i];
-            if (!pos) return null;
-            return (
-              <div
-                key={i}
-                className="hotspot-circle"
-                style={{ left: pos.x, top: pos.y, pointerEvents: "none" }}
-              >
-                <div className={`hotspot-dot${panelIdx === i ? " active" : ""}`} />
-                <div className="hotspot-ping" />
-              </div>
-            );
-          })}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none hidden lg:block" style={{ zIndex: 1 }}>
+          {(() => {
+            const finalPositions = computeFinalPositions(dotPositions);
+            return FEATURE_POINTS.map((fp, i) => {
+              const pos = finalPositions[i];
+              if (!pos) return null;
+              return (
+                <div
+                  key={i}
+                  className="hotspot-circle"
+                  style={{ left: pos.x, top: pos.y, pointerEvents: "none" }}
+                >
+                  <div className={`hotspot-dot${panelIdx === i ? " active" : ""}`} />
+                  <div className="hotspot-ping" />
+                </div>
+              );
+            });
+          })()}
         </div>
         <canvas ref={canvasRef} className="absolute inset-0" style={{ opacity: 0.60, zIndex: 2, pointerEvents: "none" }} />
       </div>
 
       {/* Invisible click targets for hotspots — above everything */}
-      <div className="fixed inset-0 z-20 pointer-events-none overflow-hidden">
-        {FEATURE_POINTS.map((fp, i) => {
-          const pos = dotPositions[i];
-          if (!pos) return null;
-          return (
-            <div
-              key={i}
-              className="hotspot-circle"
-              style={{ left: pos.x, top: pos.y }}
-              onMouseEnter={() => { if (selectedIdx === null) setHoveredIdx(i); }}
-              onMouseLeave={() => { if (selectedIdx === null) setHoveredIdx(null); }}
-              onClick={() => setSelectedIdx(selectedIdx === i ? null : i)}
-            >
-              <div style={{ width: 24, height: 24, borderRadius: "50%" }} />
-            </div>
-          );
-        })}
+      <div className="fixed inset-0 z-20 pointer-events-none overflow-hidden hidden lg:block">
+        {(() => {
+          const finalPositions = computeFinalPositions(dotPositions);
+          return FEATURE_POINTS.map((fp, i) => {
+            const pos = finalPositions[i];
+            if (!pos) return null;
+            return (
+              <div
+                key={i}
+                style={{
+                  position: "absolute",
+                  left: pos.x,
+                  top: pos.y,
+                  transform: "translate(-50%, -50%)",
+                  width: 44,
+                  height: 44,
+                  borderRadius: "50%",
+                  pointerEvents: "auto",
+                  cursor: "pointer",
+                  zIndex: 10,
+                }}
+                onMouseEnter={() => handleDotEnter(i)}
+                onMouseLeave={() => handleDotLeave()}
+                onClick={() => setSelectedIdx(selectedIdx === i ? null : i)}
+              />
+            );
+          });
+        })()}
       </div>
 
       {/* Right-side feature detail panel */}

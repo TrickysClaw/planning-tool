@@ -35,6 +35,9 @@ export default function NearbyActivityCard({
   onCDCs,
   onCCs,
   onItemClick,
+  initialDA,
+  initialCDC,
+  initialCC,
 }: {
   lat: number;
   lng: number;
@@ -42,19 +45,23 @@ export default function NearbyActivityCard({
   onCDCs?: (cdcs: ActivityResult[]) => void;
   onCCs?: (ccs: ActivityResult[]) => void;
   onItemClick?: (item: { lat: number; lng: number }) => void;
+  initialDA?: any;
+  initialCDC?: any;
+  initialCC?: any;
 }) {
   const [tab, setTab] = useState<Tab>("da");
-  const [das, setDas] = useState<ActivityResult[]>([]);
-  const [cdcs, setCdcs] = useState<ActivityResult[]>([]);
-  const [ccs, setCcs] = useState<ActivityResult[]>([]);
-  const [loadingDA, setLoadingDA] = useState(true);
-  const [loadingCDC, setLoadingCDC] = useState(true);
-  const [loadingCC, setLoadingCC] = useState(true);
+  const [das, setDas] = useState<ActivityResult[]>(initialDA?.results || []);
+  const [cdcs, setCdcs] = useState<ActivityResult[]>(initialCDC?.results || []);
+  const [ccs, setCcs] = useState<ActivityResult[]>(initialCC?.results || []);
+  const [loadingDA, setLoadingDA] = useState(!initialDA);
+  const [loadingCDC, setLoadingCDC] = useState(!initialCDC);
+  const [loadingCC, setLoadingCC] = useState(!initialCC);
   const [expanded, setExpanded] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortBy, setSortBy] = useState<"distance" | "cost" | "date" | "dwellings">("distance");
 
   useEffect(() => {
+    if (initialDA) return;
     setLoadingDA(true);
     fetch(`/api/da?lat=${lat}&lng=${lng}`)
       .then((r) => r.json())
@@ -65,9 +72,10 @@ export default function NearbyActivityCard({
       })
       .catch(() => setDas([]))
       .finally(() => setLoadingDA(false));
-  }, [lat, lng, onDAs]);
+  }, [lat, lng, onDAs, initialDA]);
 
   useEffect(() => {
+    if (initialCDC) return;
     setLoadingCDC(true);
     fetch(`/api/cdc?lat=${lat}&lng=${lng}`)
       .then((r) => r.json())
@@ -78,9 +86,10 @@ export default function NearbyActivityCard({
       })
       .catch(() => setCdcs([]))
       .finally(() => setLoadingCDC(false));
-  }, [lat, lng, onCDCs]);
+  }, [lat, lng, onCDCs, initialCDC]);
 
   useEffect(() => {
+    if (initialCC) return;
     setLoadingCC(true);
     fetch(`/api/cc?lat=${lat}&lng=${lng}`)
       .then((r) => r.json())
@@ -91,7 +100,7 @@ export default function NearbyActivityCard({
       })
       .catch(() => setCcs([]))
       .finally(() => setLoadingCC(false));
-  }, [lat, lng, onCCs]);
+  }, [lat, lng, onCCs, initialCC]);
 
   // Reset filter/expanded when switching tabs
   useEffect(() => {

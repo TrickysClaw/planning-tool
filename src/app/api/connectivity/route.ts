@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAuth } from "@/lib/auth";
 import { haversineKm } from "@/lib/geo";
 import { STATIONS } from "@/data/stations";
 
@@ -27,7 +28,7 @@ async function fetchOverpass(query: string): Promise<{ elements?: Record<string,
   for (const url of OVERPASS_URLS) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000);
+      const timeout = setTimeout(() => controller.abort(), 6000);
       const res = await fetch(url, {
         method: "POST",
         body: `data=${encodeURIComponent(query)}`,
@@ -90,6 +91,9 @@ function computeScore(grouped: Record<string, AmenityResult[]>): number {
 }
 
 export async function GET(req: NextRequest) {
+  const { response } = await verifyAuth(req);
+  if (response) return response;
+
   const lat = parseFloat(req.nextUrl.searchParams.get("lat") || "0");
   const lng = parseFloat(req.nextUrl.searchParams.get("lng") || "0");
   if (!lat || !lng) return NextResponse.json({ error: "Missing lat/lng" }, { status: 400 });

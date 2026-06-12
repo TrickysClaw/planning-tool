@@ -55,14 +55,18 @@ function extractSuburb(address: string): string {
   return filtered.length > 0 ? filtered[filtered.length - 1] : address;
 }
 
-export default function PerceptionCard({ address }: { address: string }) {
-  const [perception, setPerception] = useState<PerceptionData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [aiPowered, setAiPowered] = useState(false);
+export default function PerceptionCard({ address, lat, lng, initialData }: { address: string; lat?: number; lng?: number; initialData?: any }) {
+  const [perception, setPerception] = useState<PerceptionData | null>(initialData || null);
+  const [loading, setLoading] = useState(!initialData);
+  const [aiPowered, setAiPowered] = useState(!!initialData);
   const [error, setError] = useState<string | null>(null);
 
+  // Stabilize lat/lng to avoid dependency array size changes
+  const stableLat = lat ?? null;
+  const stableLng = lng ?? null;
+
   useEffect(() => {
-    if (!address) return;
+    if (initialData || !address) return; // Skip fetch if data was pre-loaded
 
     const suburb = extractSuburb(address);
 
@@ -75,10 +79,15 @@ export default function PerceptionCard({ address }: { address: string }) {
       return;
     }
 
-    // Fetch from AI API
+    // Fetch from API with coordinates for real data lookups
     setLoading(true);
     setError(null);
-    fetch(`/api/perception?suburb=${encodeURIComponent(suburb)}`)
+    const params = new URLSearchParams({ suburb });
+    if (stableLat != null && stableLng != null) {
+      params.set("lat", stableLat.toString());
+      params.set("lng", stableLng.toString());
+    }
+    fetch(`/api/perception?${params}`)
       .then(res => {
         if (!res.ok) throw new Error("API error");
         return res.json();
@@ -93,7 +102,8 @@ export default function PerceptionCard({ address }: { address: string }) {
         setError("Unable to load perception data");
       })
       .finally(() => setLoading(false));
-  }, [address]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, stableLat, stableLng]);
 
   if (loading) {
     return (
@@ -152,6 +162,7 @@ export default function PerceptionCard({ address }: { address: string }) {
         </div>
 
         <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {perception.medianIncome && (
           <div className="p-2 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
             <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>
               <DollarSign size={10} />
@@ -159,6 +170,7 @@ export default function PerceptionCard({ address }: { address: string }) {
             </div>
             <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>${perception.medianIncome.toLocaleString()}</p>
           </div>
+          )}
           {perception.medianHousePrice && (
             <div className="p-2 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
               <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>
@@ -239,18 +251,12 @@ export default function PerceptionCard({ address }: { address: string }) {
         </div>
       </div>
 
-      {/* Sources / AI badge */}
+      {/* Sources / data quality badge */}
       <div className="mt-3 flex items-center gap-2 p-2 rounded-lg" style={{ background: "var(--bg-sunken)", border: "1px solid var(--border)" }}>
         <Bot size={14} style={{ color: "var(--accent)" }} />
-        {aiPowered ? (
-          <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
-            AI-generated analysis based on {perception.sources?.join(", ") || "ABS Census, BOCSAR, Domain.com.au"}. Data may be approximate.
-          </p>
-        ) : (
-          <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
-            Based on ABS Census 2021, BOCSAR crime statistics &amp; market data.
-          </p>
-        )}
+        <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+          {perception.sources?.join(" • ") || "ABS Census 2021 • BOCSAR Crime Stats • AI interpretation"}
+        </p>
       </div>
     </motion.div>
   );

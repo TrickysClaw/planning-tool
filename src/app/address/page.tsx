@@ -5,13 +5,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import SearchBar from "../components/SearchBar";
 import BuildSummaryCard from "../components/BuildSummaryCard";
 import ReportCard from "../components/ReportCard";
-import ConnectivityCard from "../components/ConnectivityCard";
+// ConnectivityCard disabled — coming soon
 import PerceptionCard from "../components/PerceptionCard";
 import HDACard from "../components/HDACard";
 import NearbyActivityCard from "../components/NearbyActivityCard";
 import PlanningMap from "../components/PlanningMap";
 import type { MapMarker } from "../components/PlanningMap";
-import { BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned, Construction, SlidersHorizontal } from "lucide-react";
+import { BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned, Construction, SlidersHorizontal, Wifi } from "lucide-react";
 import ThemeToggle from "../components/ThemeToggle";
 import Link from "next/link";
 
@@ -41,77 +41,77 @@ function saveSearchHistory(entry: SearchHistoryEntry) {
 
 const glossary = [
   {
-    icon: <Building2 className="text-indigo-400" size={22} />,
+    icon: <Building2 style={{ color: "var(--text-muted)" }} size={22} />,
     term: "Zoning",
     short: "What you can build on the land",
     detail: "Every parcel of land in NSW is assigned a zone under the Local Environmental Plan (LEP). The zone determines what types of development are permitted (with or without consent) or prohibited.",
     example: "R2 Low Density Residential → Houses, duplexes, home businesses.",
   },
   {
-    icon: <Ruler className="text-indigo-400" size={22} />,
+    icon: <Ruler style={{ color: "var(--text-muted)" }} size={22} />,
     term: "Height of Building (HOB)",
     short: "Maximum height your building can reach",
     detail: "The Height of Building control sets the maximum height (in metres) that any structure on the land can reach, measured from existing ground level to the highest point. A rough guide: each residential storey is about 3 metres.",
     example: "9m height limit ≈ 2-3 storeys. 15m ≈ 4-5 storeys. 45m+ ≈ high-rise tower.",
   },
   {
-    icon: <BarChart3 className="text-indigo-400" size={22} />,
+    icon: <BarChart3 style={{ color: "var(--text-muted)" }} size={22} />,
     term: "Floor Space Ratio (FSR)",
     short: "How much floor area you can build relative to lot size",
     detail: "FSR is the ratio of total gross floor area to total site area. An FSR of 0.5:1 means you can build floor area equal to half the lot size. FSR works together with height limits.",
     example: "600m² lot × 0.5:1 FSR = 300m² max floor area. 600m² lot × 2.5:1 FSR = 1,500m² max floor area.",
   },
   {
-    icon: <Maximize2 className="text-indigo-400" size={22} />,
+    icon: <Maximize2 style={{ color: "var(--text-muted)" }} size={22} />,
     term: "Minimum Lot Size",
     short: "Smallest block you can subdivide into",
     detail: "This control sets the minimum area a lot must have to be subdivided or developed. If you want to do a duplex or subdivision, the resulting lots must each meet the minimum lot size.",
     example: "Minimum lot size 450m² → You need at least 900m² to subdivide into two lots.",
   },
   {
-    icon: <Landmark className="text-indigo-400" size={22} />,
+    icon: <Landmark style={{ color: "var(--text-muted)" }} size={22} />,
     term: "Heritage",
     short: "Whether the property or area has heritage significance",
     detail: "Heritage listings protect places of historical, architectural, cultural or natural significance. A property can be individually listed (heritage item) or within a Heritage Conservation Area (HCA).",
     example: "Heritage item → Major constraints on external changes. HCA → New builds must match neighbourhood character.",
   },
   {
-    icon: <Flame className="text-indigo-400" size={22} />,
+    icon: <Flame style={{ color: "var(--text-muted)" }} size={22} />,
     term: "Bushfire Prone Land",
     short: "Whether the land is at risk of bushfire",
     detail: "Land mapped as bushfire prone requires compliance with Planning for Bush Fire Protection 2019. Development must include Asset Protection Zones, specific construction standards, and access requirements.",
     example: "BAL-29 rating → Ember-resistant construction, ~10-15% cost premium. BAL-FZ → Extremely restricted.",
   },
   {
-    icon: <Droplets className="text-indigo-400" size={22} />,
+    icon: <Droplets style={{ color: "var(--text-muted)" }} size={22} />,
     term: "Flood Planning",
     short: "Whether the land is in a flood-affected area",
     detail: "Flood-affected land has restrictions under the NSW Flood Prone Land Policy. Habitable floor levels must be above the Flood Planning Level. Some areas prohibit certain types of development entirely.",
     example: "Flood Planning Area → Floor levels must be raised. Floodway → Extremely restricted development.",
   },
   {
-    icon: <Mountain className="text-indigo-400" size={22} />,
+    icon: <Mountain style={{ color: "var(--text-muted)" }} size={22} />,
     term: "Landslide Risk",
     short: "Whether the land is susceptible to landslide",
     detail: "Landslide risk mapping identifies areas where terrain, geology, and drainage make land movements more likely. Development typically requires geotechnical investigation.",
     example: "Landslide risk → Geotechnical report required. May need piled foundations, adding $50-100k+ to build cost.",
   },
   {
-    icon: <FlaskConical className="text-indigo-400" size={22} />,
+    icon: <FlaskConical style={{ color: "var(--text-muted)" }} size={22} />,
     term: "Acid Sulfate Soils",
     short: "Soil that produces acid when exposed to air",
     detail: "Acid sulfate soils contain iron sulfides that produce sulfuric acid when disturbed. Classes range from 1 (highest risk) to 5 (lowest). Development on Class 1-4 soils requires a management plan.",
     example: "Class 1 → Works at any depth need a management plan. Class 5 → Only adjacent works affected.",
   },
   {
-    icon: <MapPinned className="text-indigo-400" size={22} />,
+    icon: <MapPinned style={{ color: "var(--text-muted)" }} size={22} />,
     term: "Key Sites",
     short: "Land identified for specific development outcomes",
     detail: "Key sites are designated in LEPs or SEPPs for particular outcomes — often with special controls, additional permitted uses, or modified development standards.",
     example: "Key Site → May allow additional height or mixed-use development not normally permitted in the zone.",
   },
   {
-    icon: <Shield className="text-indigo-400" size={22} />,
+    icon: <Shield style={{ color: "var(--text-muted)" }} size={22} />,
     term: "LEP (Local Environmental Plan)",
     short: "The legal planning document for a council area",
     detail: "The LEP is the principal legal document that guides planning decisions. It contains the zoning map, development standards, heritage schedules, and other provisions.",
@@ -186,7 +186,7 @@ function AddressPage() {
         status: p.outcome || p.recommendation || undefined,
         date: p.briefing_date || undefined,
         pan: `EOI ${p.eoi_number}`,
-        link: `https://www.planningportal.nsw.gov.au/housing-delivery-authority/proposals`,
+        link: `https://www.planning.nsw.gov.au/policy-and-legislation/housing/housing-delivery-authority`,
       }));
     setHdaMarkers(markers);
   }, []);
@@ -214,7 +214,7 @@ function AddressPage() {
           date: d.lodgementDate || undefined,
           pan: d.pan || undefined,
           councilRef: d.councilRef || undefined,
-          link: d.pan ? `https://www.planningportal.nsw.gov.au/datracker/application/${d.pan}` : undefined,
+          link: d.pan ? `https://www.planningportal.nsw.gov.au/map?search=${encodeURIComponent(d.pan)}` : undefined,
         };
       });
     setDaMarkers(markers);
@@ -243,7 +243,7 @@ function AddressPage() {
           date: c.lodgementDate || undefined,
           pan: c.pan || undefined,
           councilRef: c.councilRef || undefined,
-          link: c.pan ? `https://www.planningportal.nsw.gov.au/datracker/application/${c.pan}` : undefined,
+          link: c.pan ? `https://www.planningportal.nsw.gov.au/map?search=${encodeURIComponent(c.pan)}` : undefined,
         };
       });
     setCdcMarkers(markers);
@@ -297,11 +297,18 @@ function AddressPage() {
     setData(null);
     setZoneCode("");
 
-    const [planning, hazard, cadastre, lga] = await Promise.all([
+    // Fetch ALL data in parallel — server-side timeouts prevent any single API from hanging
+    const [planning, hazard, cadastre, lga, hda, connectivity, perception, daData, cdcData, ccData] = await Promise.all([
       fetch(`/api/planning?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ results: [] })),
       fetch(`/api/hazard?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ bushfire: { features: [] }, flood: { features: [] } })),
       fetch(`/api/cadastre?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ features: [] })),
       fetch(`/api/lga?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ councilName: null, boundary: null })),
+      fetch(`/api/hda?address=${encodeURIComponent(address)}&lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ projects: [] })),
+      Promise.resolve(null), // connectivity disabled for now
+      fetch(`/api/perception?suburb=${encodeURIComponent(address.split(/\s+/).slice(-2, -1).join("+"))}&lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => null),
+      fetch(`/api/da?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ applications: [] })),
+      fetch(`/api/cdc?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ certificates: [] })),
+      fetch(`/api/cc?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ certificates: [] })),
     ]);
 
     setLgaBoundary(lga?.boundary || undefined);
@@ -309,7 +316,6 @@ function AddressPage() {
     let poly: [number, number][] | undefined;
     if (cadastre?.features?.[0]?.geometry?.rings?.[0]) {
       const ring = cadastre.features[0].geometry.rings[0] as number[][];
-      // Geometry is now in WGS84 (outSR=4326): [lng, lat] pairs
       poly = ring.map(([lng, lat]: number[]) => [lat, lng] as [number, number]);
     }
     setLotPolygon(poly);
@@ -318,7 +324,27 @@ function AddressPage() {
     const zone = zoningResult?.attributes?.SYM_CODE || "";
     setZoneCode(zone);
 
-    setData({ address, planning, hazard, cadastre, councilName: lga?.councilName || "" });
+    // Process map markers
+    const hdaProjects = hda?.projects || [];
+    handleHDAProjects(hdaProjects);
+    if (connectivity?.summary) {
+      const allAmenities = Object.values(connectivity.summary).flat() as { type: string; name: string; distance: number; lat: number; lng: number }[];
+      handleAmenities(allAmenities.filter((a: any) => a.lat && a.lng));
+    }
+    handleDAResults(daData?.results || []);
+    handleCDCResults(cdcData?.results || []);
+    handleCCResults(ccData?.results || []);
+
+    setData({
+      address, planning, hazard, cadastre,
+      councilName: lga?.councilName || "",
+      hda: hdaProjects,
+      connectivity,
+      perception,
+      da: daData,
+      cdc: cdcData,
+      cc: ccData,
+    });
     setLoading(false);
 
     const entry: SearchHistoryEntry = { address, lat, lng, zone, timestamp: Date.now() };
@@ -368,35 +394,29 @@ function AddressPage() {
 
       <div className="px-4 py-6">
       {loading && (
-        <div className="max-w-[1600px] mx-auto mt-6 space-y-4 animate-pulse">
-          <div className="rounded-2xl p-6" style={{ border: "1px solid var(--border)", background: "var(--card-bg)" }}>
-            <div className="h-6 w-48 rounded mb-4" style={{ background: "var(--border-strong)" }} />
-            <div className="h-4 w-72 rounded mb-3" style={{ background: "var(--border-strong)" }} />
-            <div className="flex gap-3">
-              <div className="h-16 w-24 rounded" style={{ background: "var(--border-strong)" }} />
-              <div className="h-16 w-24 rounded" style={{ background: "var(--border-strong)" }} />
-              <div className="h-16 w-24 rounded" style={{ background: "var(--border-strong)" }} />
-            </div>
+        <div className="max-w-[1600px] mx-auto mt-6 flex flex-col items-center justify-center py-24">
+          <div className="relative mb-6">
+            <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
+            <div className="absolute inset-0 w-16 h-16 border-4 border-b-transparent rounded-full animate-spin" style={{ borderColor: "var(--border)", borderBottomColor: "transparent", animationDirection: "reverse", animationDuration: "1.5s" }} />
           </div>
-          <div className="rounded-2xl p-4 h-12" style={{ border: "1px solid var(--border)", background: "var(--card-bg)" }} />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="rounded-2xl p-6 h-48" style={{ border: "1px solid var(--border)", background: "var(--card-bg)" }} />
-            <div className="rounded-2xl p-6 h-48" style={{ border: "1px solid var(--border)", background: "var(--card-bg)" }} />
-          </div>
+          <p className="text-lg font-medium mb-2" style={{ color: "var(--text-primary)" }}>Analysing property</p>
+          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+            Pulling planning controls, hazards, nearby activity, and market data...
+          </p>
         </div>
       )}
 
       {data && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-[1600px] mx-auto">
           {/* Jump links */}
-          <nav className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 text-xs">
+          <nav className="flex items-center gap-4 mb-4 overflow-x-auto pb-1 text-xs border-b" style={{ borderColor: "var(--border)" }}>
             {[
               { id: "summary", label: "Summary" },
               { id: "context", label: "Context" },
               { id: "activity", label: "Activity" },
               { id: "map", label: "Map" },
             ].map((link) => (
-              <a key={link.id} href={`#${link.id}`} className="px-3 py-1.5 rounded-full transition whitespace-nowrap" style={{ border: "1px solid var(--border)", color: "var(--text-muted)" }}>
+              <a key={link.id} href={`#${link.id}`} className="pb-2 transition whitespace-nowrap hover:opacity-100 opacity-60" style={{ color: "var(--text-primary)", borderBottom: "1px solid transparent" }}>
                 {link.label}
               </a>
             ))}
@@ -418,16 +438,27 @@ function AddressPage() {
               <div className="flex-1 min-w-0 space-y-4">
                 {/* Connectivity + Perception side by side on md+ */}
                 <section id="context" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <ConnectivityCard lat={coords.lat} lng={coords.lng} onAmenities={handleAmenities} />
-                  <PerceptionCard address={data.address} />
+                  <div className="relative glass-card">
+                    <div className="absolute inset-0 z-10 rounded-2xl flex items-center justify-center backdrop-blur-[2px]" style={{ background: "var(--bg-overlay, rgba(0,0,0,0.03))" }}>
+                      <span className="px-3 py-1.5 rounded-full text-xs font-medium" style={{ background: "var(--card-bg)", border: "1px solid var(--border)", color: "var(--text-muted)" }}>Coming soon</span>
+                    </div>
+                    <div className="opacity-40 pointer-events-none select-none">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Wifi size={20} style={{ color: "var(--accent)" }} />
+                        <h3 className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>Connectivity Score</h3>
+                      </div>
+                      <p className="text-sm" style={{ color: "var(--text-muted)" }}>Transport, schools, shops, medical &amp; parks nearby.</p>
+                    </div>
+                  </div>
+                  <PerceptionCard address={data.address} lat={coords?.lat} lng={coords?.lng} initialData={data.perception} />
                 </section>
 
                 {/* HDA */}
-                <HDACard address={data.address} lat={coords.lat} lng={coords.lng} onProjects={handleHDAProjects} onItemClick={handleItemClick} />
+                <HDACard address={data.address} lat={coords.lat} lng={coords.lng} onProjects={handleHDAProjects} onItemClick={handleItemClick} initialData={data.hda} />
 
                 {/* DA + CDC tabbed */}
                 <section id="activity">
-                  <NearbyActivityCard lat={coords.lat} lng={coords.lng} onDAs={handleDAResults} onCDCs={handleCDCResults} onCCs={handleCCResults} onItemClick={handleItemClick} />
+                  <NearbyActivityCard lat={coords.lat} lng={coords.lng} onDAs={handleDAResults} onCDCs={handleCDCResults} onCCs={handleCCResults} onItemClick={handleItemClick} initialDA={data.da} initialCDC={data.cdc} initialCC={data.cc} />
                 </section>
               </div>
 

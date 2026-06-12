@@ -23,7 +23,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      className="p-2 rounded-lg border transition-all"
+      className="p-2 rounded-lg border cursor-pointer transition-all duration-150 hover:scale-110 hover:shadow-md active:scale-95"
       style={{
         background: "var(--input-bg)",
         borderColor: "var(--border)",

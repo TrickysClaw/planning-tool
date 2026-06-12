@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAuth } from "@/lib/auth";
 
 /* ───────────────────────────────────────────────────────────
    /api/search — Property Site Search
@@ -133,6 +134,9 @@ function calculateArea(rings: number[][][]): number {
 }
 
 export async function GET(req: NextRequest) {
+  const { response } = await verifyAuth(req);
+  if (response) return response;
+
   const sp = req.nextUrl.searchParams;
   const lat = parseFloat(sp.get("lat") || "0");
   const lng = parseFloat(sp.get("lng") || "0");

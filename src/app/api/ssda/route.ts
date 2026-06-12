@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAuth } from "@/lib/auth";
 import { parse } from "node-html-parser";
 
 const LGA_MAP: Record<string, number> = {
@@ -124,6 +125,9 @@ async function scrapeProjects(lgaNum: number): Promise<SSDAProject[]> {
 }
 
 export async function GET(req: NextRequest) {
+  const { response } = await verifyAuth(req);
+  if (response) return response;
+
   const lgaParam = req.nextUrl.searchParams.get("lga") || "";
   if (!lgaParam) {
     return NextResponse.json({ projects: [], error: "LGA parameter required" }, { status: 400 });

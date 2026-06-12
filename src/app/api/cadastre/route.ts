@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAuth } from "@/lib/auth";
 
 /**
  * Calculate lot area from WGS84 ring geometry using Shoelace formula (m²)
@@ -22,6 +23,9 @@ function calculateGeodesicArea(rings: number[][][]): number {
 }
 
 export async function GET(req: NextRequest) {
+  const { response } = await verifyAuth(req);
+  if (response) return response;
+
   const lat = parseFloat(req.nextUrl.searchParams.get("lat") || "0");
   const lng = parseFloat(req.nextUrl.searchParams.get("lng") || "0");
 

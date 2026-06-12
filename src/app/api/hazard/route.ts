@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAuth } from "@/lib/auth";
 
 const HAZARD_BASE = "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/ePlanning/Planning_Portal_Hazard/MapServer";
 const PROTECTION_BASE = "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/ePlanning/Planning_Portal_Protection/MapServer";
@@ -55,6 +56,9 @@ async function getCouncilName(lat: number, lng: number): Promise<string | null> 
 }
 
 export async function GET(req: NextRequest) {
+  const { response } = await verifyAuth(req);
+  if (response) return response;
+
   const lat = parseFloat(req.nextUrl.searchParams.get("lat") || "0");
   const lng = parseFloat(req.nextUrl.searchParams.get("lng") || "0");
 

@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAuth } from "@/lib/auth";
 
 const BASE_URL = "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Planning/EPI_Primary_Planning_Layers/MapServer";
 
 export async function GET(req: NextRequest) {
+  const { response } = await verifyAuth(req);
+  if (response) return response;
+
   const lat = parseFloat(req.nextUrl.searchParams.get("lat") || "0");
   const lng = parseFloat(req.nextUrl.searchParams.get("lng") || "0");
 

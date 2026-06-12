@@ -3,87 +3,83 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * PlanView Design Tokens — "Indigo Sapphire"
- * -------------------------------------------
- * Target: Professional property investors/researchers (35-55)
- * Palette: Deep indigo accent + zinc neutrals
- * - Premium financial-analytics feel
- * - Distinct from blue/green property portal norm
- * - WCAG AA+ contrast ratios throughout
- * - Colorblind-safe: indigo distinguishable from all semantic hues
+ * PlanView Design Tokens
+ * ----------------------
+ * Neutral-first. Accent is near-black/white — no purple, no blue.
+ * Professional, understated, hard to pin as AI-generated.
  */
 
 :root {
   /* === Surfaces === */
-  --bg: #F9FAFB;
+  --bg: #FAFAFA;
   --bg-elevated: #FFFFFF;
-  --bg-sunken: #F3F4F6;
-  --bg-overlay: rgba(17, 24, 39, 0.6);
+  --bg-sunken: #F4F4F5;
+  --bg-overlay: rgba(9, 9, 11, 0.6);
 
   /* === Card === */
   --card-bg: #FFFFFF;
-  --card-border: rgba(0, 0, 0, 0.08);
-  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --card-border: rgba(0, 0, 0, 0.06);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 
   /* === Text === */
-  --text-primary: #111827;
-  --text-secondary: #374151;
-  --text-muted: #6B7280;
-  --text-inverted: #FFFFFF;
+  --text-primary: #09090B;
+  --text-secondary: #3F3F46;
+  --text-muted: #71717A;
+  --text-inverted: #FAFAFA;
 
-  /* === Primary accent (deep indigo — premium, authoritative) === */
-  --accent: #4338CA;
-  --accent-hover: #3730A3;
-  --accent-subtle: rgba(67, 56, 202, 0.06);
-  --accent-muted: rgba(67, 56, 202, 0.12);
-  --accent-border: rgba(67, 56, 202, 0.3);
+  /* === Primary accent (near-black — authoritative, zero AI vibes) === */
+  --accent: #18181B;
+  --accent-hover: #27272A;
+  --accent-subtle: rgba(24, 24, 27, 0.05);
+  --accent-muted: rgba(24, 24, 27, 0.10);
+  --accent-border: rgba(24, 24, 27, 0.25);
 
   /* === Semantic status === */
-  --success: #059669;
-  --success-bg: rgba(5, 150, 105, 0.07);
-  --success-border: rgba(5, 150, 105, 0.2);
+  --success: #16A34A;
+  --success-bg: rgba(22, 163, 74, 0.06);
+  --success-border: rgba(22, 163, 74, 0.18);
 
-  --warning: #D97706;
-  --warning-bg: rgba(217, 119, 6, 0.07);
-  --warning-border: rgba(217, 119, 6, 0.2);
+  --warning: #CA8A04;
+  --warning-bg: rgba(202, 138, 4, 0.06);
+  --warning-border: rgba(202, 138, 4, 0.18);
 
   --danger: #DC2626;
-  --danger-bg: rgba(220, 38, 38, 0.06);
-  --danger-border: rgba(220, 38, 38, 0.15);
+  --danger-bg: rgba(220, 38, 38, 0.05);
+  --danger-border: rgba(220, 38, 38, 0.14);
 
-  --info: #2563EB;
-  --info-bg: rgba(37, 99, 235, 0.06);
-  --info-border: rgba(37, 99, 235, 0.18);
+  --info: #0284C7;
+  --info-bg: rgba(2, 132, 199, 0.05);
+  --info-border: rgba(2, 132, 199, 0.16);
 
   /* === Borders === */
-  --border: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.16);
-  --border-interactive: rgba(67, 56, 202, 0.5);
+  --border: rgba(0, 0, 0, 0.06);
+  --border-strong: rgba(0, 0, 0, 0.14);
+  --border-interactive: rgba(24, 24, 27, 0.4);
 
   /* === Interactive === */
-  --btn-bg: #4338CA;
-  --btn-text: #FFFFFF;
-  --btn-hover: #3730A3;
+  --btn-bg: #18181B;
+  --btn-text: #FAFAFA;
+  --btn-hover: #27272A;
   --input-bg: #FFFFFF;
-  --input-border: rgba(0, 0, 0, 0.12);
-  --input-focus: rgba(67, 56, 202, 0.4);
+  --input-border: rgba(0, 0, 0, 0.10);
+  --input-focus: rgba(24, 24, 27, 0.3);
 
-  /* === Badge colors (distinct hues, WCAG safe) === */
-  --badge-green: #059669;
-  --badge-green-bg: rgba(5, 150, 105, 0.1);
-  --badge-amber: #D97706;
-  --badge-amber-bg: rgba(217, 119, 6, 0.1);
+  /* === Badge colors === */
+  --badge-green: #16A34A;
+  --badge-green-bg: rgba(22, 163, 74, 0.08);
+  --badge-amber: #CA8A04;
+  --badge-amber-bg: rgba(202, 138, 4, 0.08);
   --badge-red: #DC2626;
-  --badge-red-bg: rgba(220, 38, 38, 0.08);
+  --badge-red-bg: rgba(220, 38, 38, 0.07);
 
   /* === Misc === */
-  --radius: 12px;
-  --radius-lg: 16px;
-  --focus-ring: 0 0 0 3px rgba(67, 56, 202, 0.25);
+  --radius: 10px;
+  --radius-lg: 14px;
+  --focus-ring: 0 0 0 2px rgba(24, 24, 27, 0.2);
 }
 
 .dark {
-  /* === Surfaces (deep zinc — warm, premium terminal feel) === */
+  /* === Surfaces === */
   --bg: #09090B;
   --bg-elevated: #18181B;
   --bg-sunken: #050506;
@@ -92,7 +88,7 @@
   /* === Card === */
   --card-bg: rgba(24, 24, 27, 0.92);
   --card-border: rgba(255, 255, 255, 0.07);
-  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.04);
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 
   /* === Text === */
   --text-primary: #FAFAFA;
@@ -100,50 +96,50 @@
   --text-muted: #71717A;
   --text-inverted: #09090B;
 
-  /* === Primary accent (bright indigo — vibrant on dark) === */
-  --accent: #818CF8;
-  --accent-hover: #A5B4FC;
-  --accent-subtle: rgba(129, 140, 248, 0.1);
-  --accent-muted: rgba(129, 140, 248, 0.16);
-  --accent-border: rgba(129, 140, 248, 0.3);
+  /* === Primary accent (white on dark — clean, editorial) === */
+  --accent: #E4E4E7;
+  --accent-hover: #FAFAFA;
+  --accent-subtle: rgba(228, 228, 231, 0.08);
+  --accent-muted: rgba(228, 228, 231, 0.14);
+  --accent-border: rgba(228, 228, 231, 0.25);
 
   /* === Semantic status === */
-  --success: #34D399;
-  --success-bg: rgba(52, 211, 153, 0.1);
-  --success-border: rgba(52, 211, 153, 0.25);
+  --success: #4ADE80;
+  --success-bg: rgba(74, 222, 128, 0.08);
+  --success-border: rgba(74, 222, 128, 0.2);
 
-  --warning: #FBBF24;
-  --warning-bg: rgba(251, 191, 36, 0.1);
-  --warning-border: rgba(251, 191, 36, 0.2);
+  --warning: #FACC15;
+  --warning-bg: rgba(250, 204, 21, 0.08);
+  --warning-border: rgba(250, 204, 21, 0.18);
 
   --danger: #FB7185;
-  --danger-bg: rgba(251, 113, 133, 0.1);
-  --danger-border: rgba(251, 113, 133, 0.2);
+  --danger-bg: rgba(251, 113, 133, 0.08);
+  --danger-border: rgba(251, 113, 133, 0.18);
 
-  --info: #60A5FA;
-  --info-bg: rgba(96, 165, 250, 0.1);
-  --info-border: rgba(96, 165, 250, 0.2);
+  --info: #38BDF8;
+  --info-bg: rgba(56, 189, 248, 0.08);
+  --info-border: rgba(56, 189, 248, 0.18);
 
   /* === Borders === */
   --border: rgba(255, 255, 255, 0.07);
   --border-strong: rgba(255, 255, 255, 0.14);
-  --border-interactive: rgba(129, 140, 248, 0.4);
+  --border-interactive: rgba(228, 228, 231, 0.35);
 
   /* === Interactive === */
-  --btn-bg: #818CF8;
+  --btn-bg: #FAFAFA;
   --btn-text: #09090B;
-  --btn-hover: #A5B4FC;
+  --btn-hover: #E4E4E7;
   --input-bg: rgba(24, 24, 27, 0.8);
   --input-border: rgba(255, 255, 255, 0.1);
-  --input-focus: rgba(129, 140, 248, 0.4);
+  --input-focus: rgba(228, 228, 231, 0.3);
 
   /* === Badge colors === */
-  --badge-green: #34D399;
-  --badge-green-bg: rgba(52, 211, 153, 0.12);
-  --badge-amber: #FBBF24;
-  --badge-amber-bg: rgba(251, 191, 36, 0.12);
+  --badge-green: #4ADE80;
+  --badge-green-bg: rgba(74, 222, 128, 0.1);
+  --badge-amber: #FACC15;
+  --badge-amber-bg: rgba(250, 204, 21, 0.1);
   --badge-red: #FB7185;
-  --badge-red-bg: rgba(251, 113, 133, 0.1);
+  --badge-red-bg: rgba(251, 113, 133, 0.08);
 }
 
 /* === Base styles === */
@@ -214,13 +210,12 @@ body.map-fullscreen .sticky {
    All transitions use a single timing: 150ms ease.
    ============================================================ */
 
-/* --- Glass card hover (subtle border glow) --- */
+/* --- Glass card hover (subtle border shift) --- */
 .glass-card {
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 .glass-card:hover {
-  border-color: var(--accent-border);
-  box-shadow: var(--card-shadow), 0 0 0 1px var(--accent-border);
+  border-color: var(--border-strong);
 }
 
 /* --- Clickable list item (DA/CDC/CC items, HDA projects) --- */

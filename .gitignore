@@ -2,3 +2,9 @@ node_modules/
 .next/
 
 .env.local
+.env*.local
+tsconfig.tsbuildinfo
+
+# Test artifacts
+test-results/
+test-results.txt

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAuth } from "@/lib/auth";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -6,6 +7,9 @@ const LGA_BOUNDARY_URL =
   "https://maps.six.nsw.gov.au/arcgis/rest/services/public/NSW_Administrative_Boundaries/MapServer/1/query";
 
 export async function GET(req: NextRequest) {
+  const { response } = await verifyAuth(req);
+  if (response) return response;
+
   const lat = parseFloat(req.nextUrl.searchParams.get("lat") || "0");
   const lng = parseFloat(req.nextUrl.searchParams.get("lng") || "0");
 

@@ -23,7 +23,7 @@ interface CDCResult {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  Determined: "bg-indigo-500/20 text-indigo-300",
+  Determined: "bg-zinc-500/20 text-zinc-300",
   "Under Assessment": "bg-yellow-500/20 text-yellow-300",
   Rejected: "bg-red-500/20 text-red-300",
   Withdrawn: "bg-slate-500/20 text-slate-400",
@@ -95,7 +95,7 @@ export default function NearbyCDCCard({ lat, lng, onCDCs }: { lat: number; lng: 
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
       className="glass-card col-span-1 md:col-span-2">
       <div className="flex items-center gap-3 mb-1">
-        <HardHat className="text-indigo-400" size={22} />
+        <HardHat style={{ color: "var(--text-muted)" }} size={22} />
         <h2 className="text-lg font-semibold text-white">🏗️ Fast-Track Approvals Nearby (CDC)</h2>
       </div>
       <p className="text-slate-400 text-sm mb-4">
@@ -125,13 +125,13 @@ export default function NearbyCDCCard({ lat, lng, onCDCs }: { lat: number; lng: 
                       <span className="text-blue-300 font-semibold">{formatAUD(totalValue)}</span>
                     </div>
                   )}
-                  <div className="px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-sm">
-                    <span className="text-indigo-300/70">Determined:</span>{" "}
-                    <span className="text-indigo-300 font-semibold">{determined}</span>
+                  <div className="px-3 py-1.5 rounded-lg bg-zinc-500/10 border border-zinc-500/20 text-sm">
+                    <span className="text-zinc-400">Determined:</span>{" "}
+                    <span className="text-zinc-200 font-semibold">{determined}</span>
                   </div>
-                  <div className="px-3 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-sm">
-                    <span className="text-purple-300/70">Approval rate:</span>{" "}
-                    <span className="text-purple-300 font-semibold">{approvalRate}%</span>
+                  <div className="px-3 py-1.5 rounded-lg bg-zinc-500/10 border border-zinc-500/20 text-sm">
+                    <span className="text-zinc-400">Approval rate:</span>{" "}
+                    <span className="text-zinc-200 font-semibold">{approvalRate}%</span>
                   </div>
                 </>
               );
@@ -162,7 +162,7 @@ export default function NearbyCDCCard({ lat, lng, onCDCs }: { lat: number; lng: 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.03 }}
-                className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-indigo-500/20 transition-colors"
+                className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-zinc-500/30 transition-colors"
               >
                 <div className="flex items-start justify-between gap-2 mb-1.5">
                   <div className="font-medium text-white text-sm leading-snug">{cdc.address}</div>
@@ -192,7 +192,7 @@ export default function NearbyCDCCard({ lat, lng, onCDCs }: { lat: number; lng: 
 
           {filtered.length > 5 && (
             <button onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1.5 mt-3 text-indigo-400 text-sm hover:text-indigo-300 transition">
+              className="flex items-center gap-1.5 mt-3 text-zinc-400 text-sm hover:text-zinc-200 transition">
               {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               {expanded ? "Show less" : `Show all ${filtered.length}`}
             </button>
@@ -202,4 +202,5 @@ export default function NearbyCDCCard({ lat, lng, onCDCs }: { lat: number; lng: 
     </motion.div>
   );
 }
+
 

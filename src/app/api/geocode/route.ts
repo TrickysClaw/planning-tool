@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAuth } from "@/lib/auth";
 import { webMercatorToWGS84 } from "@/lib/geo";
 
 const ADDRESS_URL = "https://api.apps1.nsw.gov.au/planning/viewersf/V1/ePlanningApi/address";
 const LOT_URL = "https://api.apps1.nsw.gov.au/planning/viewersf/V1/ePlanningApi/lot";
 
 export async function GET(req: NextRequest) {
+  const { response } = await verifyAuth(req);
+  if (response) return response;
+
   const q = req.nextUrl.searchParams.get("q") || "";
   if (q.length < 3) return NextResponse.json([]);
 

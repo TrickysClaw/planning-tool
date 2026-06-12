@@ -131,9 +131,9 @@ export default function BuildSummaryCard({ data }: { data: any }) {
             <Building2 size={24} style={{ color: "var(--accent)" }} />
             <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>What Can I Build Here?</h2>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: config.bg, border: `1px solid ${config.border}` }} title={potential === "green" ? "Zone and controls favour development" : potential === "amber" ? "Some constraints may limit development" : "Significant constraints restrict development"}>
-            <span className="w-2.5 h-2.5 rounded-full" style={{ background: config.text }} />
-            <span className="text-sm font-medium" style={{ color: config.text }}>{config.label}</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: config.bg, border: `1px solid ${config.border}` }} title={potential === "green" ? "Zone and controls favour development" : potential === "amber" ? "Some constraints may limit development" : "Significant constraints restrict development"}>
+            <span className="w-2 h-2 rounded-full" style={{ background: config.text }} />
+            <span className="text-xs font-medium tracking-wide" style={{ color: config.text }}>{config.label}</span>
           </div>
         </div>
 

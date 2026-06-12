@@ -14,7 +14,7 @@ interface ConnectivityData {
 const ICONS: Record<string, React.ReactNode> = {
   train: <Train size={14} className="text-blue-400" />,
   bus: <Bus size={14} className="text-yellow-400" />,
-  school: <GraduationCap size={14} className="text-purple-400" />,
+  school: <GraduationCap size={14} style={{ color: "var(--text-muted)" }} />,
   shopping: <ShoppingBag size={14} className="text-pink-400" />,
   medical: <Stethoscope size={14} className="text-red-400" />,
   park: <TreePine size={14} className="text-green-400" />,
@@ -59,13 +59,14 @@ function ScoreRing({ score }: { score: number }) {
   );
 }
 
-export default function ConnectivityCard({ lat, lng, onAmenities }: { lat: number; lng: number; onAmenities?: (amenities: { type: string; name: string; distance: number; lat: number; lng: number }[]) => void }) {
-  const [data, setData] = useState<ConnectivityData | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function ConnectivityCard({ lat, lng, onAmenities, initialData }: { lat: number; lng: number; onAmenities?: (amenities: { type: string; name: string; distance: number; lat: number; lng: number }[]) => void; initialData?: any }) {
+  const [data, setData] = useState<ConnectivityData | null>(initialData || null);
+  const [loading, setLoading] = useState(!initialData);
   const [expanded, setExpanded] = useState(false);
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    if (initialData) return; // Skip fetch if data was pre-loaded
     setLoading(true);
     setError(false);
     fetch(`/api/connectivity?lat=${lat}&lng=${lng}`)
@@ -81,7 +82,7 @@ export default function ConnectivityCard({ lat, lng, onAmenities }: { lat: numbe
         setLoading(false);
       })
       .catch(() => { setError(true); setLoading(false); });
-  }, [lat, lng, onAmenities]);
+  }, [lat, lng, onAmenities, initialData]);
 
   if (loading) {
     return (

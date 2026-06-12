@@ -55,22 +55,24 @@ export default function HDACard({
   lng,
   onProjects,
   onItemClick,
+  initialData,
 }: {
   address: string;
   lat?: number;
   lng?: number;
   onProjects?: (projects: HDAProject[]) => void;
   onItemClick?: (item: { lat: number; lng: number }) => void;
+  initialData?: any[];
 }) {
-  const [projects, setProjects] = useState<HDAProject[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState<HDAProject[]>(initialData || []);
+  const [loading, setLoading] = useState(!initialData);
   const [expanded, setExpanded] = useState(false);
   const [typeFilter, setTypeFilter] = useState("All");
   const [recFilter, setRecFilter] = useState("All");
   const [sortBy, setSortBy] = useState<"distance" | "dwellings" | "date">("distance");
 
   useEffect(() => {
-    if (!address) return;
+    if (initialData || !address) return; // Skip fetch if data was pre-loaded
     setLoading(true);
     let url = `/api/hda?address=${encodeURIComponent(address)}`;
     if (lat && lng) url += `&lat=${lat}&lng=${lng}`;
@@ -83,7 +85,7 @@ export default function HDACard({
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [address, lat, lng, onProjects]);
+  }, [address, lat, lng, onProjects, initialData]);
 
   const types = useMemo(() => ["All", ...Array.from(new Set(projects.map((p) => p.type).filter(Boolean)))], [projects]);
   const recs = useMemo(() => ["All", ...Array.from(new Set(projects.map((p) => p.recommendation).filter(Boolean)))], [projects]);

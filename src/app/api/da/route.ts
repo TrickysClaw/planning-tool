@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAuth } from "@/lib/auth";
 import { haversineKm } from "@/lib/geo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -27,6 +28,9 @@ async function getCouncilName(lat: number, lng: number): Promise<string | null> 
 }
 
 export async function GET(req: NextRequest) {
+  const { response } = await verifyAuth(req);
+  if (response) return response;
+
   const lat = parseFloat(req.nextUrl.searchParams.get("lat") || "");
   const lng = parseFloat(req.nextUrl.searchParams.get("lng") || "");
   const radius = Math.min(parseFloat(req.nextUrl.searchParams.get("radius") || "1"), 2);

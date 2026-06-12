@@ -20,7 +20,7 @@ export const STATUS_STYLES: Record<string, { bg: string; color: string }> = {
   Withdrawn: { bg: "rgba(100,116,139,0.1)", color: "#64748B" },
   Registered: { bg: "var(--info-bg)", color: "var(--info)" },
   "Additional Information Requested": { bg: "var(--warning-bg)", color: "var(--warning)" },
-  Deferred: { bg: "rgba(139,92,246,0.1)", color: "#7C3AED" },
+  Deferred: { bg: "rgba(100,116,139,0.1)", color: "#64748B" },
   Pending: { bg: "rgba(100,116,139,0.1)", color: "#64748B" },
 };
 
@@ -33,14 +33,14 @@ export function getStatusStyle(status: string): { bg: string; color: string } {
 
 // Keep legacy class-based version for backward compat
 export const STATUS_COLORS: Record<string, string> = {
-  Determined: "bg-indigo-500/20 text-indigo-300",
+  Determined: "bg-zinc-500/20 text-zinc-300",
   "Under Assessment": "bg-yellow-500/20 text-yellow-300",
   Rejected: "bg-red-500/20 text-red-300",
   "On Exhibition": "bg-blue-500/20 text-blue-300",
   Withdrawn: "bg-slate-500/20 text-slate-400",
   Registered: "bg-cyan-500/20 text-cyan-300",
   "Additional Information Requested": "bg-orange-500/20 text-orange-300",
-  Deferred: "bg-purple-500/20 text-purple-300",
+  Deferred: "bg-slate-500/20 text-slate-400",
   Pending: "bg-slate-500/20 text-slate-400",
 };
 

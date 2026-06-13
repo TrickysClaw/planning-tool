@@ -97,12 +97,12 @@ export async function POST(req: NextRequest) {
   // Send welcome email with credentials
   try {
     await resend.emails.send({
-      from: "PlanView <onboarding@resend.dev>",
+      from: "Landlytic <noreply@landlytic.com>",
       to: request.email,
-      subject: "Welcome to PlanView — Your login details",
+      subject: "Welcome to Landlytic — Your login details",
       html: `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 500px; margin: 0 auto; padding: 40px 20px;">
-          <h1 style="font-size: 24px; font-weight: 700; color: #111;">Welcome to PlanView</h1>
+          <h1 style="font-size: 24px; font-weight: 700; color: #111;">Welcome to Landlytic</h1>
           <p style="color: #555; font-size: 15px; line-height: 1.6;">
             Your access has been approved. Here are your login details:
           </p>
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
             <p style="margin: 0; font-size: 14px; color: #333;"><strong>Password:</strong> <code style="background: #e8e8e8; padding: 2px 6px; border-radius: 4px;">${password}</code></p>
           </div>
           <p style="color: #555; font-size: 14px; line-height: 1.6;">
-            You can sign in at <a href="https://planview.app/login" style="color: #2563eb;">planview.app/login</a>
+            You can sign in at <a href="https://landlytic.com/login" style="color: #2563eb;">landlytic.com/login</a>
           </p>
           <p style="color: #999; font-size: 12px; margin-top: 32px;">
             For security, we recommend changing your password after your first login.

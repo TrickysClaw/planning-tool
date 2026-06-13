@@ -13,7 +13,7 @@ export function createBrowserClient() {
   return browserClient;
 }
 
-// Server admin client (uses service role key — never expose to browser)
+// Server admin client (uses service role key - never expose to browser)
 export function createAdminClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

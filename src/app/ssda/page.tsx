@@ -146,7 +146,7 @@ export default function SSDAPage() {
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>Major Projects Tracker</h1>
           <p className="text-lg" style={{ color: "var(--text-muted)" }}>
-            Big developments happening across NSW — hospitals, housing estates, metro stations, and more
+            Big developments happening across NSW - hospitals, housing estates, metro stations, and more
           </p>
           <p className="text-sm mt-2" style={{ color: "var(--text-muted)", opacity: 0.7 }}>
             Government-approved major projects that bypass normal council processes.
@@ -326,7 +326,7 @@ export default function SSDAPage() {
           <p className="text-xs" style={{ color: "var(--text-muted)" }}>
             Data sourced from{" "}
             <a href="https://www.planningportal.nsw.gov.au/major-projects/projects" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)" }} className="transition">
-              NSW Planning Portal — Major Projects
+              NSW Planning Portal - Major Projects
             </a>
             . © State Government of NSW.
           </p>

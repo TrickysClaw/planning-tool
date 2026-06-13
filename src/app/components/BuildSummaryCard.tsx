@@ -5,36 +5,36 @@ import { Building2, AlertTriangle, Flame, Droplets, Landmark, TrendingUp, Mounta
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const ZONE_DESCRIPTIONS: Record<string, string> = {
-  R1: "Large lot residential — houses only, no subdividing below minimum lot size",
-  R2: "Low density — houses, duplexes, granny flats, home businesses",
-  R3: "Medium density — townhouses, villas, manor houses, plus everything R2 allows",
-  R4: "High density — apartment buildings, plus everything R3 allows",
+  R1: "Large lot residential - houses only, no subdividing below minimum lot size",
+  R2: "Low density - houses, duplexes, granny flats, home businesses",
+  R3: "Medium density - townhouses, villas, manor houses, plus everything R2 allows",
+  R4: "High density - apartment buildings, plus everything R3 allows",
   R5: "Large lot / rural residential",
-  B1: "Local/neighbourhood centre — shops, offices, and some residential above",
-  B2: "Local/neighbourhood centre — shops, offices, and some residential above",
-  B4: "Mixed use — residential, commercial, retail all permitted",
-  B6: "Enterprise corridor — commercial, light industrial, some residential",
-  MU1: "Mixed use — residential, commercial, retail all permitted",
-  E1: "Environmental/conservation — very restricted development",
-  E2: "Environmental/conservation — very restricted development",
-  E3: "Environmental/conservation — very restricted development",
-  C1: "Environmental/conservation — very restricted development",
-  C2: "Environmental/conservation — very restricted development",
-  C3: "Environmental/conservation — very restricted development",
-  C4: "Environmental/conservation — very restricted development",
-  IN1: "Industrial — no residential",
-  IN2: "Industrial — no residential",
+  B1: "Local/neighbourhood centre - shops, offices, and some residential above",
+  B2: "Local/neighbourhood centre - shops, offices, and some residential above",
+  B4: "Mixed use - residential, commercial, retail all permitted",
+  B6: "Enterprise corridor - commercial, light industrial, some residential",
+  MU1: "Mixed use - residential, commercial, retail all permitted",
+  E1: "Environmental/conservation - very restricted development",
+  E2: "Environmental/conservation - very restricted development",
+  E3: "Environmental/conservation - very restricted development",
+  C1: "Environmental/conservation - very restricted development",
+  C2: "Environmental/conservation - very restricted development",
+  C3: "Environmental/conservation - very restricted development",
+  C4: "Environmental/conservation - very restricted development",
+  IN1: "Industrial - no residential",
+  IN2: "Industrial - no residential",
   SP1: "Special purpose",
   SP2: "Special purpose",
-  RE1: "Recreation — very limited development",
-  RE2: "Recreation — very limited development",
-  W1: "Waterway — no development",
-  W2: "Waterway — no development",
+  RE1: "Recreation - very limited development",
+  RE2: "Recreation - very limited development",
+  W1: "Waterway - no development",
+  W2: "Waterway - no development",
 };
 
 function getZoneDescription(code: string): string {
   const base = code?.replace(/\s.*/, "") || "";
-  if (base === "E4") return "Industrial — no residential";
+  if (base === "E4") return "Industrial - no residential";
   return ZONE_DESCRIPTIONS[base] || "Check with council for permitted uses";
 }
 
@@ -102,24 +102,24 @@ export default function BuildSummaryCard({ data }: { data: any }) {
   const warnings = [];
   if (hasHeritage) {
     const label = isHeritageItem
-      ? `Heritage Item — ${heritage.H_NAME}`
+      ? `Heritage Item - ${heritage.H_NAME}`
       : isHCA
-      ? `Heritage Conservation Area — ${heritage.H_NAME}`
-      : `Heritage listed — ${heritage.H_NAME}`;
+      ? `Heritage Conservation Area - ${heritage.H_NAME}`
+      : `Heritage listed - ${heritage.H_NAME}`;
     const sig = heritageSig ? ` (${heritageSig} significance)` : "";
     const advice = isHeritageItem
-      ? " — major constraints on external changes"
-      : " — new builds must match neighbourhood character";
+      ? " - major constraints on external changes"
+      : " - new builds must match neighbourhood character";
     warnings.push({ icon: <Landmark size={16} />, text: `${label}${sig}${advice}`, cssVar: "var(--danger)" });
   }
-  if (hasBushfire) warnings.push({ icon: <Flame size={16} />, text: `Bushfire prone${bush[0]?.attributes?.CATEGORY ? ` (${bush[0].attributes.CATEGORY})` : ""} — BAL assessment required`, cssVar: "var(--warning)" });
+  if (hasBushfire) warnings.push({ icon: <Flame size={16} />, text: `Bushfire prone${bush[0]?.attributes?.CATEGORY ? ` (${bush[0].attributes.CATEGORY})` : ""} - BAL assessment required`, cssVar: "var(--warning)" });
   if (hasFlood) {
-    warnings.push({ icon: <Droplets size={16} />, text: "Flood affected — floor levels must be above flood planning level", cssVar: "var(--warning)" });
+    warnings.push({ icon: <Droplets size={16} />, text: "Flood affected - floor levels must be above flood planning level", cssVar: "var(--warning)" });
   } else if (!hazard?.floodDataAvailable) {
-    warnings.push({ icon: <Info size={16} />, text: "Flood data unavailable for this council — check with your local council for flood information", cssVar: "var(--text-muted)" });
+    warnings.push({ icon: <Info size={16} />, text: "Flood data unavailable for this council - check with your local council for flood information", cssVar: "var(--text-muted)" });
   }
-  if (hasLandslide) warnings.push({ icon: <Mountain size={16} />, text: "Landslide risk area — geotechnical report required", cssVar: "var(--warning)" });
-  if (hasAcidSulfate) warnings.push({ icon: <FlaskConical size={16} />, text: `Acid sulfate soils — ${acidSulfate[0]?.attributes?.LABEL || "management plan required"}`, cssVar: "var(--warning)" });
+  if (hasLandslide) warnings.push({ icon: <Mountain size={16} />, text: "Landslide risk area - geotechnical report required", cssVar: "var(--warning)" });
+  if (hasAcidSulfate) warnings.push({ icon: <FlaskConical size={16} />, text: `Acid sulfate soils - ${acidSulfate[0]?.attributes?.LABEL || "management plan required"}`, cssVar: "var(--warning)" });
 
   if (!zoneCode) return null;
 
@@ -148,7 +148,7 @@ export default function BuildSummaryCard({ data }: { data: any }) {
         {/* Key metrics inline */}
         <div className="flex flex-wrap gap-4 text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
           {storeys !== null && <span title="Maximum building height allowed under the LEP">↕ {heightM}m (~{storeys} storeys)</span>}
-          {maxGFA !== null && <span title="Floor Space Ratio — total floor area relative to lot size">📐 FSR {fsr.FSR}:1 → {maxGFA.toLocaleString()}m² max</span>}
+          {maxGFA !== null && <span title="Floor Space Ratio - total floor area relative to lot size">📐 FSR {fsr.FSR}:1 → {maxGFA.toLocaleString()}m² max</span>}
           {lotArea > 0 && <span title="Lot area from cadastral records">📏 Lot: {effectiveLot.toLocaleString()}m²</span>}
         </div>
 

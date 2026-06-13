@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/auth";
 
 /* ───────────────────────────────────────────────────────────
-   /api/search — Property Site Search
+   /api/search - Property Site Search
    Queries NSW ePlanning & Cadastre APIs for lots matching criteria.
    ─────────────────────────────────────────────────────────── */
 
@@ -247,7 +247,7 @@ export async function GET(req: NextRequest) {
         return { ...lot, zone: matchedZone.code, zoneLabel: matchedZone.label };
       }).filter(Boolean);
     } else {
-      // No zone filter — query zoning for each lot's centroid (batch by querying the bbox)
+      // No zone filter - query zoning for each lot's centroid (batch by querying the bbox)
       const zoningResult = await queryLayer(
         EPLANNING_BASE,
         LAYER_ZONING,

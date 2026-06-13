@@ -7,10 +7,10 @@ import { createAdminClient } from "@/lib/supabase";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 10000 });
 
-// Model for perception highlights/concerns — separate from insights summary
+// Model for perception highlights/concerns - separate from insights summary
 const PERCEPTION_MODEL = process.env.PERCEPTION_MODEL || "gpt-4.1-mini";
 
-// Cache results — real data doesn't change often
+// Cache results - real data doesn't change often
 const cache = new Map<string, { data: any; ts: number }>();
 const CACHE_TTL = 1000 * 60 * 60 * 24 * 7; // 7 days
 
@@ -415,7 +415,7 @@ export async function GET(req: NextRequest) {
     const afterStreetType = suburbParam.slice(streetTypeIdx).replace(streetTypePattern, "").replace(/\s*\d{4}\s*$/, "").trim();
     suburb = afterStreetType || suburbParam;
   } else {
-    // No street type found — might already be just a suburb name
+    // No street type found - might already be just a suburb name
     suburb = suburbParam.replace(/^\d+\w?\s+/, "").replace(/\s*\d{4}\s*$/, "").trim() || suburbParam;
   }
 
@@ -449,7 +449,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Domain API for median house prices (optional — requires DOMAIN_API_KEY)
+    // Domain API for median house prices (optional - requires DOMAIN_API_KEY)
     if (postcode) {
       domainPrices = await getDomainMedianPrice(suburb, postcode);
     }

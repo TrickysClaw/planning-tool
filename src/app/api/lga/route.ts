@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
     let boundary: [number, number][] | null = null;
     if (feature.geometry?.rings?.[0]) {
       const ring = feature.geometry.rings[0] as number[][];
-      // Simplify — take every Nth point to keep the boundary lightweight
+      // Simplify - take every Nth point to keep the boundary lightweight
       const step = Math.max(1, Math.floor(ring.length / 200));
       boundary = [];
       for (let i = 0; i < ring.length; i += step) {

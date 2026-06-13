@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
     await resend.emails.send({
       from: "Landlytic <noreply@landlytic.com>",
       to: request.email,
-      subject: "Welcome to Landlytic — Your login details",
+      subject: "Welcome to Landlytic - Your login details",
       html: `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 500px; margin: 0 auto; padding: 40px 20px;">
           <h1 style="font-size: 24px; font-weight: 700; color: #111;">Welcome to Landlytic</h1>
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
       `,
     });
   } catch (emailError) {
-    // Email failed but user was still created — log and continue
+    // Email failed but user was still created - log and continue
     console.error("Failed to send welcome email:", emailError);
   }
 

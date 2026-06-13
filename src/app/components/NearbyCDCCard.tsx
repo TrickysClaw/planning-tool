@@ -99,7 +99,7 @@ export default function NearbyCDCCard({ lat, lng, onCDCs }: { lat: number; lng: 
         <h2 className="text-lg font-semibold text-white">🏗️ Fast-Track Approvals Nearby (CDC)</h2>
       </div>
       <p className="text-slate-400 text-sm mb-4">
-        Complying Development Certificates — projects approved without full council review
+        Complying Development Certificates - projects approved without full council review
       </p>
 
       {loading ? (

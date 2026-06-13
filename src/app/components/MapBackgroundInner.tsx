@@ -18,7 +18,7 @@ const FEATURE_POINTS = [
       "Minimum lot sizes and subdivision potential at a glance",
       "Dual occupancy, secondary dwelling, and boarding house feasibility flags",
     ],
-    icon: "🏗️",
+    icon: "�-️",
   },
   {
     lat: -33.7004, lng: 150.8762,
@@ -102,7 +102,7 @@ function buildRailSegments(): { coords: [number, number][]; type: string }[] {
     }
     const prev = STATIONS[i - 1];
     const dist = Math.sqrt((s.lat - prev.lat) ** 2 + (s.lng - prev.lng) ** 2);
-    // ~0.036 degrees ≈ 4km — break line if gap is too large (different line)
+    // ~0.036 degrees ≈ 4km - break line if gap is too large (different line)
     if (dist < 0.036 && s.type === prev.type) {
       current.push([s.lat, s.lng]);
     } else {
@@ -587,7 +587,7 @@ export default function MapBackgroundInner() {
           }
         `}</style>
         <div ref={mapRef} className="absolute inset-0" style={{ width: "100%", height: "100%" }} />
-        {/* Feature hotspots — rendered below the canvas so they're hidden until mouse reveals them */}
+        {/* Feature hotspots - rendered below the canvas so they're hidden until mouse reveals them */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none hidden lg:block" style={{ zIndex: 1 }}>
           {(() => {
             const finalPositions = computeFinalPositions(dotPositions);
@@ -610,7 +610,7 @@ export default function MapBackgroundInner() {
         <canvas ref={canvasRef} className="absolute inset-0" style={{ opacity: 0.60, zIndex: 2, pointerEvents: "none" }} />
       </div>
 
-      {/* Invisible click targets for hotspots — above everything */}
+      {/* Invisible click targets for hotspots - above everything */}
       <div className="fixed inset-0 z-20 pointer-events-none overflow-hidden hidden lg:block">
         {(() => {
           const finalPositions = computeFinalPositions(dotPositions);

@@ -116,7 +116,7 @@ export default function NearbyDACard({
         <h2 className="text-lg font-semibold text-white">📋 Nearby Development Applications</h2>
       </div>
       <p className="text-slate-400 text-sm mb-4">
-        What&apos;s being built or proposed near you — applications lodged with council
+        What&apos;s being built or proposed near you - applications lodged with council
       </p>
 
       {loading ? (

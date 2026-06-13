@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import SearchBar from "../components/SearchBar";
 import AISummaryCard from "../components/AISummaryCard";
 import LandInfoCard from "../components/LandInfoCard";
-// ConnectivityCard disabled — coming soon
+// ConnectivityCard disabled - coming soon
 import PerceptionCard from "../components/PerceptionCard";
 import HDACard from "../components/HDACard";
 import NearbyActivityCard from "../components/NearbyActivityCard";
@@ -59,7 +59,7 @@ const glossary = [
     term: "Floor Space Ratio (FSR)",
     short: "How much floor area you can build relative to lot size",
     detail: "FSR is the ratio of total gross floor area to total site area. An FSR of 0.5:1 means you can build floor area equal to half the lot size. FSR works together with height limits.",
-    example: "600m² lot × 0.5:1 FSR = 300m² max floor area. 600m² lot × 2.5:1 FSR = 1,500m² max floor area.",
+    example: "600m² lot �- 0.5:1 FSR = 300m² max floor area. 600m² lot �- 2.5:1 FSR = 1,500m² max floor area.",
   },
   {
     icon: <Maximize2 style={{ color: "var(--text-muted)" }} size={22} />,
@@ -345,7 +345,7 @@ function AddressPage() {
     setData(null);
     setZoneCode("");
 
-    // Fetch ALL data in parallel — server-side timeouts prevent any single API from hanging
+    // Fetch ALL data in parallel - server-side timeouts prevent any single API from hanging
     const [planning, hazard, cadastre, lga, hda, connectivity, perception, daData, cdcData, ccData] = await Promise.all([
       fetch(`/api/planning?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ results: [] })),
       fetch(`/api/hazard?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ bushfire: { features: [] }, flood: { features: [] } })),

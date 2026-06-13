@@ -1,7 +1,7 @@
 /**
  * BOCSAR NSW Crime Statistics by LGA
  * Source: NSW Bureau of Crime Statistics and Research (bocsar.nsw.gov.au)
- * Data: Rate per 100,000 population — total recorded incidents (latest available year)
+ * Data: Rate per 100,000 population - total recorded incidents (latest available year)
  *
  * HOW TO UPDATE: Download the latest "LGA Crime Trends" Excel from
  * https://www.bocsar.nsw.gov.au/Pages/bocsar_crime_stats/bocsar_lgaexcel.aspx
@@ -187,7 +187,7 @@ export function lookupCrime(councilName: string): LGACrimeData | null {
   // Direct match
   if (BOCSAR_DATA[upper]) return BOCSAR_DATA[upper];
 
-  // Partial match — find the key that contains the search term
+  // Partial match - find the key that contains the search term
   for (const [key, data] of Object.entries(BOCSAR_DATA)) {
     if (key.includes(upper) || upper.includes(data.lga.toUpperCase())) {
       return data;

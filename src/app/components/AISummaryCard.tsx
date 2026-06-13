@@ -62,7 +62,7 @@ export default function AISummaryCard({ address, siteData }: { address?: string;
       .finally(() => setLoading(false));
   }, [address, siteData]);
 
-  // No data yet — don't render
+  // No data yet - don't render
   if (!address || !siteData) return null;
 
   if (loading) {

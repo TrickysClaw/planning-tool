@@ -54,7 +54,7 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-/** Return council names to query — nearest + any within 10km */
+/** Return council names to query - nearest + any within 10km */
 export function getCouncilsForLocation(lat: number, lng: number): string[] {
   const distances = councils.map((c) => ({
     name: c.name,

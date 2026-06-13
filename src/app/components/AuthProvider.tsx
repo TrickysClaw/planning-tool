@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Not authenticated and not on public page — show nothing while redirecting
+  // Not authenticated and not on public page - show nothing while redirecting
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
   if (!session && !isPublic) {
     return null;

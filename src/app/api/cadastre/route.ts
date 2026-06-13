@@ -24,7 +24,7 @@ function calculateGeodesicArea(rings: number[][][]): number {
 
 /**
  * Approximate lot frontage and depth from polygon geometry.
- * Uses axis-aligned bounding box — reasonable for most residential lots.
+ * Uses axis-aligned bounding box - reasonable for most residential lots.
  */
 function calculateLotDimensions(rings: number[][][]): { frontage: number; depth: number } | null {
   const ring = rings[0];

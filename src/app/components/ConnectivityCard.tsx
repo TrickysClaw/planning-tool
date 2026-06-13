@@ -108,7 +108,7 @@ export default function ConnectivityCard({ lat, lng, onAmenities, initialData }:
           <Wifi size={20} style={{ color: "var(--accent)" }} />
           <h3 className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>Connectivity</h3>
         </div>
-        <p className="text-sm" style={{ color: "var(--text-muted)" }}>Unable to load connectivity data — the OpenStreetMap service may be temporarily busy. Try refreshing.</p>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>Unable to load connectivity data - the OpenStreetMap service may be temporarily busy. Try refreshing.</p>
       </motion.div>
     );
   }

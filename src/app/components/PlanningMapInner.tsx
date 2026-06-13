@@ -81,7 +81,7 @@ export default function PlanningMapInner({
   const [legendOpen, setLegendOpen] = useState(false);
   const [isDark, setIsDark] = useState(true);
 
-  // Ref-based tile swap — avoids React effect/closure issues
+  // Ref-based tile swap - avoids React effect/closure issues
   const swapTilesRef = useRef<() => void>(() => {});
   swapTilesRef.current = () => {
     const map = mapRef.current;
@@ -187,7 +187,7 @@ export default function PlanningMapInner({
     lg.clearLayers();
     const bounds = L.latLngBounds([[lat, lng]]);
 
-    // LGA boundary — faint outline showing council area
+    // LGA boundary - faint outline showing council area
     if (lgaBoundary && lgaBoundary.length > 2) {
       const lgaPoly = L.polygon(lgaBoundary, {
         color: "#64748B",
@@ -232,7 +232,7 @@ export default function PlanningMapInner({
       .bindPopup(`<b style="color:#000">Searched Address</b>`);
     lg.addLayer(searchMarker);
 
-    // Project markers — filtered by active layers
+    // Project markers - filtered by active layers
     let hasExtras = false;
     if (markers?.length) {
       markers.forEach((m) => {

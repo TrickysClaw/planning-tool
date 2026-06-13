@@ -43,7 +43,7 @@ export default function SearchBar({ onSelect, searchHistory, onHistoryClick, com
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Only fetch when user types — not when q is set programmatically
+  // Only fetch when user types - not when q is set programmatically
   function handleInputChange(value: string) {
     setQ(value);
     if (value.length < 3) { setResults([]); setOpen(false); return; }

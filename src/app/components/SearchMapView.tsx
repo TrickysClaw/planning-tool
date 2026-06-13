@@ -164,7 +164,7 @@ export default function SearchMapView({
       poly.bindTooltip(
         `<div style="font-size:12px;line-height:1.5;min-width:200px">
           ${imgUrl ? `<img src="${imgUrl}" style="width:100%;height:120px;object-fit:cover;border-radius:6px;margin-bottom:6px" loading="lazy" />` : ""}
-          <div style="font-weight:700;margin-bottom:2px">${r.zone} — ${r.zoneLabel}</div>
+          <div style="font-weight:700;margin-bottom:2px">${r.zone} - ${r.zoneLabel}</div>
           ${lotLabel ? `<div>${lotLabel}</div>` : ""}
           <div>${r.area.toLocaleString()} m² · ~${r.frontage}m frontage</div>
         </div>`,
@@ -173,7 +173,7 @@ export default function SearchMapView({
 
       poly.bindPopup(
         `<div style="color:#000;font-size:12px;line-height:1.6;min-width:160px">
-          <div style="font-weight:700;font-size:13px;margin-bottom:4px">${r.zone} — ${r.zoneLabel}</div>
+          <div style="font-weight:700;font-size:13px;margin-bottom:4px">${r.zone} - ${r.zoneLabel}</div>
           <div><b>Area:</b> ${r.area.toLocaleString()} m²</div>
           <div><b>Frontage:</b> ~${r.frontage}m</div>
           <div style="margin-top:8px"><a href="/address?lat=${r.lat}&lng=${r.lng}&q=${encodeURIComponent(r.zone + " lot")}" style="color:#4F46E5;font-weight:600;text-decoration:none">View full details →</a></div>

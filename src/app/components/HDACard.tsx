@@ -36,7 +36,7 @@ const REC_COLORS: Record<string, { bg: string; text: string }> = {
 
 const REC_LABELS: Record<string, string> = {
   "Declare SSD": "✅ Approved for fast-track",
-  "Not Declare": "❌ Rejected — goes back to council",
+  "Not Declare": "❌ Rejected - goes back to council",
   Deferred: "⏳ Decision pending",
   "Existing SSD pathway": "🔄 Already in the system",
   Withdrawn: "🚫 Pulled out",
@@ -134,7 +134,7 @@ export default function HDACard({
         )}
       </div>
       <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
-        Large housing developments proposed near you — these skip council and get fast-tracked by the NSW government.
+        Large housing developments proposed near you - these skip council and get fast-tracked by the NSW government.
       </p>
 
       {projects.length === 0 ? (
@@ -170,7 +170,7 @@ export default function HDACard({
                   <span className="text-xs" style={{ color: "var(--text-muted)" }}>🏠 {p.dwellings.toLocaleString()} dwellings</span>
                 )}
                 <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: recColor(p.recommendation).bg, color: recColor(p.recommendation).text }}>
-                  {Object.entries(REC_LABELS).find(([k]) => p.recommendation?.includes(k))?.[1] || p.recommendation || "—"}
+                  {Object.entries(REC_LABELS).find(([k]) => p.recommendation?.includes(k))?.[1] || p.recommendation || "-"}
                 </span>
               </div>
 

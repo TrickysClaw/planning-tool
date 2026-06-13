@@ -31,7 +31,7 @@ async function scrapeHDAProjects(): Promise<HDAProject[]> {
     }
   }
 
-  // Cache is stale or empty — scrape fresh data
+  // Cache is stale or empty - scrape fresh data
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 10000);
@@ -183,7 +183,7 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
 }
 
 function getBriefingUrl(briefingDate: string): string {
-  // Link to the published records page — individual PDF URLs are unreliable
+  // Link to the published records page - individual PDF URLs are unreliable
   return `https://www.planning.nsw.gov.au/policy-and-legislation/housing/housing-delivery-authority/published-records`;
 }
 
@@ -199,9 +199,9 @@ function describeProject(p: { type: string; dwellings: number | null; recommenda
   parts.push(typeLabels[p.type] || `${p.type || "Unknown"} development`);
   if (p.dwellings) parts.push(`proposing ${p.dwellings.toLocaleString()} dwellings`);
   if (p.capital_investment) parts.push(`with $${p.capital_investment} capital investment`);
-  if (p.recommendation.includes("Declare")) parts.push("— declared as State Significant Development");
-  else if (p.recommendation.includes("Not Declare")) parts.push("— not declared SSD (council assessment)");
-  else if (p.recommendation.includes("Deferred")) parts.push("— decision deferred");
+  if (p.recommendation.includes("Declare")) parts.push("- declared as State Significant Development");
+  else if (p.recommendation.includes("Not Declare")) parts.push("- not declared SSD (council assessment)");
+  else if (p.recommendation.includes("Deferred")) parts.push("- decision deferred");
   if (p.applicant && p.applicant.length > 3) parts.push(`Applied by ${p.applicant}`);
   return parts.join(" ");
 }

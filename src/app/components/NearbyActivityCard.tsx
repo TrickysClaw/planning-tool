@@ -157,8 +157,8 @@ export default function NearbyActivityCard({
         {tab === "da"
           ? "Development Applications lodged with council near this property"
           : tab === "cdc"
-          ? "Complying Development Certificates — fast-track approvals nearby"
-          : "Construction Certificates — confirmed to start building nearby"}
+          ? "Complying Development Certificates - fast-track approvals nearby"
+          : "Construction Certificates - confirmed to start building nearby"}
       </p>
 
       {loading ? (

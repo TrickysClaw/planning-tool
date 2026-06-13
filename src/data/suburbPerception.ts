@@ -1,4 +1,4 @@
-// Static suburb perception data — sourced from ABS Census 2021 + BOCSAR crime stats
+// Static suburb perception data - sourced from ABS Census 2021 + BOCSAR crime stats
 // Will be replaced with LLM-powered web scraping in Phase 2
 
 export interface SuburbPerception {
@@ -31,8 +31,8 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
     sentiment: "positive",
     sentimentScore: 0.72,
     highlights: [
-      "Excellent schools — Castle Hill High, Oakhill College",
-      "Castle Towers shopping centre — one of Sydney's largest",
+      "Excellent schools - Castle Hill High, Oakhill College",
+      "Castle Towers shopping centre - one of Sydney's largest",
       "Metro Northwest line connection",
       "Strong family community, quiet residential streets",
       "Hills Showground events and markets",
@@ -54,14 +54,14 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
     sentiment: "positive",
     sentimentScore: 0.68,
     highlights: [
-      "Norwest Business Park — major employment hub",
+      "Norwest Business Park - major employment hub",
       "Norwest Metro station",
       "Modern apartments and townhouses",
       "Bella Vista Farm Park nearby",
       "Growing café and restaurant scene",
     ],
     concerns: [
-      "Still developing — some areas feel empty/corporate",
+      "Still developing - some areas feel empty/corporate",
       "Apartment oversupply concerns",
       "Limited character compared to established suburbs",
     ],
@@ -77,8 +77,8 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
     sentiment: "positive",
     sentimentScore: 0.75,
     highlights: [
-      "Bella Vista Metro station — direct CBD access",
-      "Bella Vista Farm Park — heritage site and open space",
+      "Bella Vista Metro station - direct CBD access",
+      "Bella Vista Farm Park - heritage site and open space",
       "Top-rated public schools in catchment",
       "Very safe, family-oriented",
       "Close to Norwest Business Park",
@@ -100,7 +100,7 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
     sentimentScore: 0.65,
     highlights: [
       "Established suburb with mature trees",
-      "Good school zone — Model Farms High, Jasper Road PS",
+      "Good school zone - Model Farms High, Jasper Road PS",
       "Grove Square and Stockland Mall",
       "Quiet residential streets",
     ],
@@ -121,8 +121,8 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
     sentiment: "positive",
     sentimentScore: 0.7,
     highlights: [
-      "Rouse Hill Town Centre — major retail hub",
-      "Rouse Hill Metro station — end of line, always get a seat",
+      "Rouse Hill Town Centre - major retail hub",
+      "Rouse Hill Metro station - end of line, always get a seat",
       "New estates with modern homes",
       "Growing community facilities",
     ],
@@ -144,7 +144,7 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
     sentimentScore: 0.73,
     highlights: [
       "Kellyville Metro station",
-      "Excellent schools — William Clarke College, Kellyville PS",
+      "Excellent schools - William Clarke College, Kellyville PS",
       "Family-friendly with parks and playgrounds",
       "Mix of established and new homes",
     ],
@@ -164,7 +164,7 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
     sentiment: "neutral",
     sentimentScore: 0.3,
     highlights: [
-      "Sydney's second CBD — massive redevelopment",
+      "Sydney's second CBD - massive redevelopment",
       "Parramatta Light Rail under construction",
       "Westfield Parramatta, dining on Church St",
       "River foreshore and parks",
@@ -188,14 +188,14 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
     sentiment: "positive",
     sentimentScore: 0.65,
     highlights: [
-      "Major shopping — Chatswood Chase, Westfield",
-      "Train + metro station — excellent connectivity",
+      "Major shopping - Chatswood Chase, Westfield",
+      "Train + metro station - excellent connectivity",
       "Diverse food scene, especially Asian cuisine",
       "Close to CBD (15 min train)",
     ],
     concerns: [
       "Very congested, limited parking",
-      "High density — can feel overcrowded",
+      "High density - can feel overcrowded",
       "Premium pricing",
     ],
     demographics: { medianAge: 35, familyPercentage: 55, ownerOccupied: 45 },
@@ -210,13 +210,13 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
     sentiment: "positive",
     sentimentScore: 0.6,
     highlights: [
-      "Major commercial hub — walking distance to many offices",
+      "Major commercial hub - walking distance to many offices",
       "Victoria Cross Metro station",
       "Harbour views from elevated positions",
       "Close to CBD via train or walk across bridge",
     ],
     concerns: [
-      "Mostly commercial — limited residential character",
+      "Mostly commercial - limited residential character",
       "Noisy during business hours",
       "Very expensive",
     ],
@@ -233,7 +233,7 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
     sentimentScore: 0.2,
     highlights: [
       "Affordable entry point to Sydney market",
-      "Penrith Panthers precinct — entertainment hub",
+      "Penrith Panthers precinct - entertainment hub",
       "Western Sydney Airport will boost values",
       "Nepean River and Blue Mountains nearby",
     ],
@@ -262,7 +262,7 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
       "Beautiful terrace houses",
     ],
     concerns: [
-      "Higher crime — theft, substance issues in parts",
+      "Higher crime - theft, substance issues in parts",
       "Noisy nightlife areas",
       "Very expensive for what you get (small terraces)",
       "Limited parking",
@@ -279,7 +279,7 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
     sentiment: "neutral",
     sentimentScore: 0.1,
     highlights: [
-      "Affordable — good entry point for first home buyers",
+      "Affordable - good entry point for first home buyers",
       "Major transport hub (T1 Western Line)",
       "Westpoint shopping centre",
       "Diverse multicultural community",
@@ -287,7 +287,7 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
     ],
     concerns: [
       "Higher crime rates, especially around station",
-      "Stigma — often negatively perceived",
+      "Stigma - often negatively perceived",
       "Infrastructure hasn't kept up with population growth",
       "Traffic congestion on Great Western Hwy",
     ],
@@ -303,8 +303,8 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
     sentiment: "positive",
     sentimentScore: 0.7,
     highlights: [
-      "Train + Metro interchange — one of the best connected suburbs",
-      "Excellent schools — Epping Boys, Cheltenham Girls",
+      "Train + Metro interchange - one of the best connected suburbs",
+      "Excellent schools - Epping Boys, Cheltenham Girls",
       "Quiet streets with good tree coverage",
       "Strong Asian food scene",
     ],
@@ -325,8 +325,8 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
     sentiment: "neutral",
     sentimentScore: 0.05,
     highlights: [
-      "Major regional centre — Liverpool Hospital, courts, TAFE",
-      "Westfield Liverpool — large retail hub",
+      "Major regional centre - Liverpool Hospital, courts, TAFE",
+      "Westfield Liverpool - large retail hub",
       "Affordable compared to Sydney average",
       "Will benefit from Western Sydney Airport and Aerotropolis",
     ],
@@ -349,13 +349,13 @@ export const SUBURB_DATA: Record<string, SuburbPerception> = {
     sentimentScore: 0.75,
     highlights: [
       "One of Sydney's safest suburbs",
-      "Modern homes — mostly built after 2010",
+      "Modern homes - mostly built after 2010",
       "Family-oriented with good parks",
       "The Ponds Shopping Centre",
       "Close to Rouse Hill Metro",
     ],
     concerns: [
-      "Cookie-cutter housing — limited character",
+      "Cookie-cutter housing - limited character",
       "Limited public transport (bus dependent)",
       "Far from CBD",
     ],

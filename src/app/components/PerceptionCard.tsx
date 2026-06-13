@@ -216,7 +216,9 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
       )}
 
       {/* Highlights & Concerns */}
+      {(perception.highlights?.length || perception.concerns?.length) && (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {perception.highlights?.length > 0 && (
         <div className="p-3 rounded-lg" style={{ background: "var(--success-bg)", border: "1px solid var(--success-border)" }}>
           <div className="flex items-center gap-1.5 mb-2">
             <ThumbsUp size={13} style={{ color: "var(--success)" }} />
@@ -231,6 +233,8 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
             ))}
           </ul>
         </div>
+        )}
+        {perception.concerns?.length > 0 && (
         <div className="p-3 rounded-lg" style={{ background: "var(--danger-bg)", border: "1px solid var(--danger-border)" }}>
           <div className="flex items-center gap-1.5 mb-2">
             <AlertTriangle size={13} style={{ color: "var(--danger)" }} />
@@ -245,7 +249,9 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
             ))}
           </ul>
         </div>
+        )}
       </div>
+      )}
 
       {/* Sources */}
       <div className="mt-3 flex items-center gap-2 p-2 rounded-lg" style={{ background: "var(--bg-sunken)", border: "1px solid var(--border)" }}>

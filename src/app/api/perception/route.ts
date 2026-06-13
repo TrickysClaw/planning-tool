@@ -453,29 +453,55 @@ export async function GET(req: NextRequest) {
 
     // === STEP 3: AI interprets data + draws on training knowledge of public opinion ===
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 0.5,
+      model: "gpt-4.1-mini",
+      temperature: 0.4,
       response_format: { type: "json_object" },
       messages: [
         {
           role: "system",
-          content: `You analyse suburb perception for property research. You receive verified statistics about a suburb. You also have broad knowledge of Australian suburbs from online discussions (Reddit, forums, blogs, news).
+          content: `You summarise how people feel about living in Australian suburbs. You receive verified statistics and must combine them with your knowledge of what residents say online (Reddit r/sydney, r/AusProperty, Whirlpool forums, local Facebook groups, news articles).
 
-Return JSON with this EXACT structure:
+Return JSON:
 {
   "sentiment": "positive" | "neutral" | "negative",
-  "sentimentScore": number between -1 and 1,
-  "highlights": [3-5 strings. Things residents and locals commonly praise about this suburb. Based on what people actually say online. Keep each under 15 words.],
-  "concerns": [3-5 strings. Things residents and locals commonly complain about. Based on what people actually say online. Keep each under 15 words.],
-  "medianHousePrice": number or null (only if not provided in data)
+  "sentimentScore": number between -1.0 and 1.0,
+  "highlights": [3-5 strings],
+  "concerns": [3-5 strings],
+  "medianHousePrice": number or null
 }
 
-RULES:
-- Highlights and concerns MUST reflect real public opinion (what people say on Reddit, forums, local news).
-- Draw on your knowledge of this suburb's reputation. If you don't know the suburb well, derive from the data.
-- Do NOT invent specific claims you can't back up.
-- Do NOT include investment advice or buy/hold/avoid recommendations.
-- No marketing language. Keep it real, short, direct.`
+HIGHLIGHTS = things locals genuinely like about day-to-day life there.
+CONCERNS = things locals genuinely complain about day-to-day life there.
+
+GOOD highlights examples:
+- "Quiet leafy streets, feels safe walking at night"
+- "Great cafe scene along the main strip"
+- "Close to bushwalking trails and national parks"
+- "Strong community vibe, neighbours actually talk to each other"
+- "Kids can walk to school without crossing major roads"
+- "Fast train to the city, under 30 minutes"
+
+BAD highlights (NEVER write these):
+- "Strong capital growth potential" (investment)
+- "High median income indicates affluent demographics" (economic)
+- "Low vacancy rates" (investment)
+- "Well-positioned for future infrastructure" (marketing)
+
+GOOD concerns examples:
+- "Traffic on Pennant Hills Road is brutal at peak hour"
+- "Not much nightlife, dead after 9pm"
+- "Aircraft noise from the flight path"
+- "Limited parking around the station"
+- "Feels isolated without a car"
+- "Construction noise from new developments everywhere"
+
+BAD concerns (NEVER write these):
+- "High entry price point for buyers" (economic)
+- "Rental yields below average" (investment)
+- "Market saturation from new apartments" (investment)
+
+Each highlight/concern must be under 15 words, written like a real person talking, not a report.
+Only include medianHousePrice if NOT already in the verified data.`
         },
         {
           role: "user",
@@ -484,7 +510,7 @@ RULES:
 VERIFIED DATA:
 ${factsSummary || "Limited data available."}
 
-Based on the data and your knowledge of public opinion about this suburb, summarise the perception.`
+What do people who live here (or have lived here) actually say about it?`
         }
       ],
     });

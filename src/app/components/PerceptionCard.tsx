@@ -176,34 +176,35 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
         {perception.medianIncome != null && perception.medianIncome > 0 && (
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
             <DollarSign size={12} style={{ color: "var(--text-muted)" }} />
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Income</span>
-            <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>${(perception.medianIncome / 1000).toFixed(0)}k</span>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Median Household Income</span>
+            <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>${(perception.medianIncome / 1000).toFixed(0)}k/yr</span>
           </div>
         )}
         {perception.medianHousePrice != null && perception.medianHousePrice > 0 && (
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
             <TrendingUp size={12} style={{ color: "var(--text-muted)" }} />
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>House</span>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Median House Price</span>
             <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>${(perception.medianHousePrice / 1000000).toFixed(1)}M</span>
           </div>
         )}
         {perception.demographics?.medianAge != null && perception.demographics.medianAge > 0 && (
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
             <Users size={12} style={{ color: "var(--text-muted)" }} />
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Age</span>
-            <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>{perception.demographics.medianAge}</span>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Median Resident Age</span>
+            <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>{perception.demographics.medianAge} yrs</span>
           </div>
         )}
         {perception.demographics?.familyPercentage != null && perception.demographics.familyPercentage > 0 && (
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
             <Home size={12} style={{ color: "var(--text-muted)" }} />
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Families</span>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Family Households</span>
             <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>{perception.demographics.familyPercentage}%</span>
           </div>
         )}
         {perception.demographics?.ownerOccupied != null && perception.demographics.ownerOccupied > 0 && perception.demographics.ownerOccupied <= 100 && (
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Owners</span>
+            <Home size={12} style={{ color: "var(--text-muted)" }} />
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Owner-Occupied</span>
             <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>{perception.demographics.ownerOccupied}%</span>
           </div>
         )}

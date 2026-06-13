@@ -451,7 +451,7 @@ export async function GET(req: NextRequest) {
       councilName ? `Council: ${councilName}` : null,
     ].filter(Boolean).join("\n");
 
-    // === STEP 3: AI provides QUALITATIVE interpretation only ===
+    // === STEP 3: AI interprets data + draws on training knowledge of public opinion ===
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.5,
@@ -459,33 +459,32 @@ export async function GET(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `You are a Sydney property investment analyst. You will be given VERIFIED statistics about a suburb from ABS Census and BOCSAR crime data. Your job is to INTERPRET these facts — provide qualitative insights only.
+          content: `You analyse suburb perception for property research. You receive verified statistics about a suburb. You also have broad knowledge of Australian suburbs from online discussions (Reddit, forums, blogs, news).
 
 Return JSON with this EXACT structure:
 {
   "sentiment": "positive" | "neutral" | "negative",
   "sentimentScore": number between -1 and 1,
-  "highlights": [5 strings — positive aspects for investors/residents],
-  "concerns": [3-5 strings — genuine risks. Be brutally honest.],
-  "investorInsight": string (3-4 sentences. Honest assessment. End with: strong buy / hold / avoid for development.),
-  "medianHousePrice": number or null (your best estimate in AUD)
+  "highlights": [3-5 strings. Things residents and locals commonly praise about this suburb. Based on what people actually say online. Keep each under 15 words.],
+  "concerns": [3-5 strings. Things residents and locals commonly complain about. Based on what people actually say online. Keep each under 15 words.],
+  "medianHousePrice": number or null (only if not provided in data)
 }
 
 RULES:
-- Do NOT invent income, crime, age, owner-occupied, or family numbers — those are provided as verified facts.
-- Only estimate median house price (no free ABS source for this).
-- Only provide qualitative interpretation and the house price estimate.
-- Be brutally honest. Every suburb has real downsides.
-- Concerns must be substantive (council DA hostility, oversupply, poor yields, traffic).`
+- Highlights and concerns MUST reflect real public opinion (what people say on Reddit, forums, local news).
+- Draw on your knowledge of this suburb's reputation. If you don't know the suburb well, derive from the data.
+- Do NOT invent specific claims you can't back up.
+- Do NOT include investment advice or buy/hold/avoid recommendations.
+- No marketing language. Keep it real, short, direct.`
         },
         {
           role: "user",
-          content: `Interpret this data for: ${suburb}, NSW, Australia.
+          content: `Suburb: ${suburb}, NSW, Australia.
 
-VERIFIED DATA (ABS Census 2021 + BOCSAR Crime Stats):
-${factsSummary || "Limited verified data available. Provide your best qualitative assessment but flag uncertainty."}
+VERIFIED DATA:
+${factsSummary || "Limited data available."}
 
-Give your qualitative interpretation.`
+Based on the data and your knowledge of public opinion about this suburb, summarise the perception.`
         }
       ],
     });
@@ -517,7 +516,6 @@ Give your qualitative interpretation.`
       },
       highlights: ai.highlights,
       concerns: ai.concerns,
-      investorInsight: ai.investorInsight,
       sources: [
         censusData?.medianAge ? "ABS Census 2021 (verified)" : null,
         crimeData ? `BOCSAR NSW Crime Statistics 2025 - ${crimeData.source === 'suburb' ? 'suburb' : 'LGA'} level (verified)` : null,

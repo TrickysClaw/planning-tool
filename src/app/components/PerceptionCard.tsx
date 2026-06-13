@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Users, ThumbsUp, AlertTriangle, DollarSign, TrendingUp, Shield, Bot, Loader2, Lightbulb } from "lucide-react";
+import { Users, ThumbsUp, AlertTriangle, DollarSign, TrendingUp, Shield, Bot, Loader2 } from "lucide-react";
 import { findSuburbPerception } from "@/data/suburbPerception";
 
 interface PerceptionData {
@@ -15,7 +15,6 @@ interface PerceptionData {
   demographics: { medianAge?: number; familyPercentage?: number; ownerOccupied?: number };
   highlights: string[];
   concerns: string[];
-  investorInsight?: string;
   sources?: string[];
 }
 
@@ -208,17 +207,6 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
           )}
         </div>
       </div>
-
-      {/* Investor Insight — AI-generated */}
-      {perception.investorInsight && (
-        <div className="mb-4 p-3 rounded-lg" style={{ background: "var(--accent-subtle)", border: "1px solid var(--accent-border)" }}>
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <Lightbulb size={13} style={{ color: "var(--accent)" }} />
-            <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>Investor Insight</span>
-          </div>
-          <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>{perception.investorInsight}</p>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="p-3 rounded-lg" style={{ background: "var(--success-bg)", border: "1px solid var(--success-border)" }}>

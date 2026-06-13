@@ -460,9 +460,9 @@ function AddressPage() {
             ))}
           </nav>
 
-          {/* AI Summary placeholder */}
+          {/* AI Summary */}
           <section id="summary">
-            <AISummaryCard />
+            <AISummaryCard address={data.address} siteData={data} />
           </section>
 
           {/* Site details strip */}

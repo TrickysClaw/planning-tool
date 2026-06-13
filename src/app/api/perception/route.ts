@@ -248,8 +248,42 @@ async function getCouncilName(lat: number, lng: number): Promise<string | null> 
   }
 }
 
-// NSW median suburb crime incidents (computed from BOCSAR 2025 suburb data)
-const NSW_MEDIAN_SUBURB_INCIDENTS = 50;
+// NSW median per category for populated suburbs (>50 incidents), from BOCSAR 2025 data
+const NSW_CATEGORY_MEDIANS = {
+  assault: 30,
+  breakEnter: 10,
+  theft: 68,
+  maliciousDamage: 20,
+  drugOffences: 10,
+  domesticViolence: 17,
+  robbery: 1,
+};
+
+/**
+ * Classify suburb crime level by comparing each category against NSW median.
+ * Uses ratio-based approach: how many categories are significantly above median.
+ * This avoids penalising large-population suburbs for having higher raw counts.
+ */
+function classifyCrime(crimeData: CrimeData): "very low" | "low" | "moderate" | "high" | "very high" {
+  const ratios = [
+    crimeData.assault / NSW_CATEGORY_MEDIANS.assault,
+    crimeData.breakEnter / NSW_CATEGORY_MEDIANS.breakEnter,
+    crimeData.theft / NSW_CATEGORY_MEDIANS.theft,
+    crimeData.maliciousDamage / NSW_CATEGORY_MEDIANS.maliciousDamage,
+    crimeData.drugOffences / Math.max(NSW_CATEGORY_MEDIANS.drugOffences, 1),
+    crimeData.domesticViolence / NSW_CATEGORY_MEDIANS.domesticViolence,
+    crimeData.robbery / Math.max(NSW_CATEGORY_MEDIANS.robbery, 1),
+  ];
+
+  // Average ratio across categories: <0.5 = well below median, 1.0 = at median, >2 = well above
+  const avgRatio = ratios.reduce((a, b) => a + b, 0) / ratios.length;
+
+  if (avgRatio <= 0.5) return "very low";
+  if (avgRatio <= 2.0) return "low";
+  if (avgRatio <= 6.0) return "moderate";
+  if (avgRatio <= 15.0) return "high";
+  return "very high";
+}
 
 interface CrimeData {
   suburb: string;
@@ -353,18 +387,6 @@ function extractLGAName(councilName: string): string {
   }).join(name.includes("-") ? "-" : " ");
 }
 
-/**
- * Classify suburb crime level based on total incidents/year
- * Thresholds based on BOCSAR 2025 NSW suburb data distribution
- */
-function classifyCrime(incidents: number): "very low" | "low" | "moderate" | "high" | "very high" {
-  if (incidents <= 50) return "very low";
-  if (incidents <= 200) return "low";
-  if (incidents <= 500) return "moderate";
-  if (incidents <= 1000) return "high";
-  return "very high";
-}
-
 export async function GET(req: NextRequest) {
   const { response } = await verifyAuth(req);
   if (response) return response;
@@ -446,7 +468,7 @@ export async function GET(req: NextRequest) {
       familyPct !== null ? `Family households: ${familyPct}%` : null,
       domainPrices?.medianHousePrice ? `Median house price: $${domainPrices.medianHousePrice.toLocaleString()} (Domain)` : null,
       domainPrices?.medianUnitPrice ? `Median unit price: $${domainPrices.medianUnitPrice.toLocaleString()} (Domain)` : null,
-      crimeData ? `Crime: ${crimeData.totalIncidents} incidents/year in ${crimeData.suburb} (${crimeData.source === 'suburb' ? 'suburb-level' : 'LGA-level'} data). Level: ${classifyCrime(crimeData.totalIncidents)}. NSW median suburb: ${NSW_MEDIAN_SUBURB_INCIDENTS}` : null,
+      crimeData ? `Crime: ${crimeData.totalIncidents} incidents/year in ${crimeData.suburb} (${crimeData.source === 'suburb' ? 'suburb-level' : 'LGA-level'} data). Level: ${classifyCrime(crimeData)}.` : null,
       crimeData ? `Assault: ${crimeData.assault}, Break & enter: ${crimeData.breakEnter}, Theft: ${crimeData.theft}, DV: ${crimeData.domesticViolence}, Robbery: ${crimeData.robbery}` : null,
       councilName ? `Council: ${councilName}` : null,
     ].filter(Boolean).join("\n");
@@ -530,7 +552,7 @@ What do people who live here (or have lived here) actually say about it?`
       suburb: sa2Info?.name || suburb,
       sentiment: ai.sentiment,
       sentimentScore: ai.sentimentScore,
-      crimeRate: crimeData ? classifyCrime(crimeData.totalIncidents) : (ai.crimeRate || "moderate"),
+      crimeRate: crimeData ? classifyCrime(crimeData) : (ai.crimeRate || "moderate"),
       crimeIndex: crimeData?.totalIncidents || null,
       crimeBreakdown: crimeData ? {
         assault: crimeData.assault,

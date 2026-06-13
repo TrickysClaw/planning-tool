@@ -38,15 +38,15 @@ function SentimentFace({ score }: { score: number }) {
   return <span className="text-3xl">😟</span>;
 }
 
-// NSW median suburb crime per category (computed from BOCSAR 2025 suburb-level data)
+// NSW median per category for populated suburbs (>50 incidents), from BOCSAR 2025 data
 const NSW_MEDIANS: Record<string, number> = {
-  "Theft": 18,
-  "Assault": 12,
-  "Break & Enter": 8,
-  "Domestic Violence": 7,
-  "Malicious Damage": 10,
-  "Drug Offences": 5,
-  "Robbery": 2,
+  "Theft": 68,
+  "Assault": 30,
+  "Break & Enter": 10,
+  "Domestic Violence": 17,
+  "Malicious Damage": 20,
+  "Drug Offences": 10,
+  "Robbery": 1,
 };
 
 function CrimeBars({ breakdown, total }: { breakdown: CrimeBreakdown; total: number }) {

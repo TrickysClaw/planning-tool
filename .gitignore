@@ -8,3 +8,4 @@ tsconfig.tsbuildinfo
 # Test artifacts
 test-results/
 test-results.txt
+.vercel

@@ -3,7 +3,9 @@ import { createAdminClient } from "@/lib/supabase";
 import crypto from "crypto";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 function generatePassword(): string {
   return crypto.randomBytes(12).toString("base64url").slice(0, 16);
@@ -96,7 +98,7 @@ export async function POST(req: NextRequest) {
 
   // Send welcome email with credentials
   try {
-    await resend.emails.send({
+    await getResend().emails.send({
       from: "Landlytic <noreply@landlytic.com>",
       to: request.email,
       subject: "Welcome to Landlytic - Your login details",

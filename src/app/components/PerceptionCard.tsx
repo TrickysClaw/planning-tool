@@ -38,6 +38,17 @@ function SentimentFace({ score }: { score: number }) {
   return <span className="text-3xl">😟</span>;
 }
 
+// NSW median suburb crime per category (computed from BOCSAR 2025 suburb-level data)
+const NSW_MEDIANS: Record<string, number> = {
+  "Theft": 18,
+  "Assault": 12,
+  "Break & Enter": 8,
+  "Domestic Violence": 7,
+  "Malicious Damage": 10,
+  "Drug Offences": 5,
+  "Robbery": 2,
+};
+
 function CrimeBars({ breakdown, total }: { breakdown: CrimeBreakdown; total: number }) {
   const categories = [
     { label: "Theft", value: breakdown.theft },
@@ -49,26 +60,52 @@ function CrimeBars({ breakdown, total }: { breakdown: CrimeBreakdown; total: num
     { label: "Robbery", value: breakdown.robbery },
   ].sort((a, b) => b.value - a.value).filter(c => c.value > 0);
 
-  const max = categories[0]?.value || 1;
+  // Max is the highest of either suburb value or NSW median (so bars scale correctly)
+  const max = Math.max(categories[0]?.value || 1, ...categories.map(c => NSW_MEDIANS[c.label] || 0));
 
   return (
-    <div className="space-y-1.5">
-      {categories.slice(0, 5).map((cat) => (
-        <div key={cat.label} className="flex items-center gap-2">
-          <span className="text-[11px] w-28 shrink-0 text-right" style={{ color: "var(--text-muted)" }}>{cat.label}</span>
-          <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ background: "var(--bg-sunken)" }}>
-            <div
-              className="h-full rounded-full transition-all"
-              style={{
-                width: `${Math.max((cat.value / max) * 100, 4)}%`,
-                background: cat.value > total * 0.3 ? "var(--danger)" : cat.value > total * 0.15 ? "var(--warning)" : "var(--accent)",
-                opacity: 0.8,
-              }}
-            />
+    <div className="space-y-2">
+      {categories.slice(0, 5).map((cat) => {
+        const nswMedian = NSW_MEDIANS[cat.label] || 0;
+        const barColor = cat.value > nswMedian * 2 ? "var(--danger)" : cat.value > nswMedian ? "var(--warning)" : "var(--success)";
+        return (
+          <div key={cat.label} className="flex items-center gap-2">
+            <span className="text-[11px] w-28 shrink-0 text-right" style={{ color: "var(--text-muted)" }}>{cat.label}</span>
+            <div className="flex-1 relative">
+              {/* NSW median marker */}
+              <div className="h-4 rounded-full overflow-hidden" style={{ background: "var(--bg-sunken)" }}>
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${Math.max((cat.value / max) * 100, 3)}%`,
+                    background: barColor,
+                    opacity: 0.8,
+                  }}
+                />
+              </div>
+              {/* NSW median line */}
+              {nswMedian > 0 && (
+                <div
+                  className="absolute top-0 h-4 border-r-2 border-dashed"
+                  style={{
+                    left: `${(nswMedian / max) * 100}%`,
+                    borderColor: "var(--text-muted)",
+                    opacity: 0.5,
+                  }}
+                />
+              )}
+            </div>
+            <span className="text-[11px] w-8 shrink-0 tabular-nums font-medium" style={{ color: "var(--text-primary)" }}>{cat.value}</span>
           </div>
-          <span className="text-[11px] w-8 shrink-0 tabular-nums" style={{ color: "var(--text-muted)" }}>{cat.value}</span>
+        );
+      })}
+      {/* Legend */}
+      <div className="flex items-center gap-3 pt-1">
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-0.5 border-t-2 border-dashed" style={{ borderColor: "var(--text-muted)", opacity: 0.5 }} />
+          <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>NSW median</span>
         </div>
-      ))}
+      </div>
     </div>
   );
 }
@@ -249,11 +286,9 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
             <div className="flex items-center gap-1.5">
               <Shield size={14} style={{ color: "var(--text-muted)" }} />
               <span className="text-xs font-medium" style={{ color: "var(--text-primary)" }}>Crime Statistics</span>
-              {perception.crimeBreakdown?.source && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "var(--card-bg)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
-                  {perception.crimeBreakdown.source === "suburb" ? "suburb-level" : "LGA-level"}
-                </span>
-              )}
+              <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "var(--card-bg)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
+                {perception.suburb}
+              </span>
             </div>
             <CrimeIndicator rate={perception.crimeRate} index={perception.crimeIndex} />
           </div>

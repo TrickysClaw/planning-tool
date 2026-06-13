@@ -8,7 +8,7 @@ interface PerceptionData {
   suburb: string;
   sentiment: "positive" | "neutral" | "negative";
   sentimentScore: number;
-  crimeRate: "low" | "moderate" | "high";
+  crimeRate: "very low" | "low" | "moderate" | "high" | "very high";
   crimeIndex: number;
   medianIncome: number;
   medianHousePrice?: number | null;
@@ -27,10 +27,10 @@ function SentimentFace({ score }: { score: number }) {
   return <span className="text-4xl">😟</span>;
 }
 
-function CrimeIndicator({ rate }: { rate: "low" | "moderate" | "high" }) {
-  const cssVars = { low: "var(--success)", moderate: "var(--warning)", high: "var(--danger)" };
-  const bgVars = { low: "var(--success-bg)", moderate: "var(--warning-bg)", high: "var(--danger-bg)" };
-  const labels = { low: "Low Crime Area", moderate: "Moderate Crime", high: "Higher Crime Area" };
+function CrimeIndicator({ rate }: { rate: "very low" | "low" | "moderate" | "high" | "very high" }) {
+  const cssVars: Record<string, string> = { "very low": "var(--success)", low: "var(--success)", moderate: "var(--warning)", high: "var(--danger)", "very high": "var(--danger)" };
+  const bgVars: Record<string, string> = { "very low": "var(--success-bg)", low: "var(--success-bg)", moderate: "var(--warning-bg)", high: "var(--danger-bg)", "very high": "var(--danger-bg)" };
+  const labels: Record<string, string> = { "very low": "Very Low Crime", low: "Low Crime Area", moderate: "Moderate Crime", high: "Higher Crime Area", "very high": "High Crime Area" };
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium" style={{ color: cssVars[rate], background: bgVars[rate] }}>
       <Shield size={10} />
@@ -162,7 +162,7 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
         </div>
 
         <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {perception.medianIncome && (
+          {perception.medianIncome != null && perception.medianIncome > 0 && (
           <div className="p-2 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
             <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>
               <DollarSign size={10} />
@@ -171,7 +171,7 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
             <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>${perception.medianIncome.toLocaleString()}</p>
           </div>
           )}
-          {perception.medianHousePrice && (
+          {perception.medianHousePrice != null && perception.medianHousePrice > 0 && (
             <div className="p-2 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
               <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>
                 <TrendingUp size={10} />
@@ -180,7 +180,7 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
               <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>${(perception.medianHousePrice / 1000000).toFixed(1)}M</p>
             </div>
           )}
-          {perception.demographics?.medianAge && (
+          {perception.demographics?.medianAge != null && perception.demographics.medianAge > 0 && (
             <div className="p-2 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
               <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>
                 <Users size={10} />
@@ -189,7 +189,7 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
               <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{perception.demographics.medianAge}</p>
             </div>
           )}
-          {perception.demographics?.familyPercentage && (
+          {perception.demographics?.familyPercentage != null && perception.demographics.familyPercentage > 0 && (
             <div className="p-2 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
               <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>
                 <Users size={10} />
@@ -198,7 +198,7 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
               <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{perception.demographics.familyPercentage}%</p>
             </div>
           )}
-          {perception.demographics?.ownerOccupied && (
+          {perception.demographics?.ownerOccupied != null && perception.demographics.ownerOccupied > 0 && perception.demographics.ownerOccupied <= 100 && (
             <div className="p-2 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
               <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>
                 Owner Occupied

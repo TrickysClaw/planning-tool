@@ -29,6 +29,7 @@
 | 8 | LGA approval difficulty rating | 3 | Feature | Historical approval % from DA data |
 | 9 | Side-by-side site comparison | 8 | Feature | Compare 2-3 addresses in columns |
 | 10 | Similar sites finder | 5 | Feature | Find lots with matching zone/size/FSR |
+| 13 | Planning Proposals (Rezonings) nearby | 5 | Feature | Active LEP amendments within 2km — huge for investors |
 
 ---
 

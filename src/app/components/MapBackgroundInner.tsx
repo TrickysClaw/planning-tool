@@ -10,7 +10,7 @@ const FEATURE_POINTS = [
   {
     lat: -33.6498, lng: 150.8442,
     title: "Zoning & Controls",
-    desc: "See exactly what you can build — zoning, floor space ratio, height limits, lot size, and heritage overlays in one click.",
+    desc: "See exactly what you can build: zoning, floor space ratio, height limits, lot size, and heritage overlays in one click.",
     details: [
       "Instantly see the primary zoning (R2, R3, R4, B1, IN1, etc.) and what's permissible",
       "Floor Space Ratio & maximum building height pulled directly from council LEPs",
@@ -26,7 +26,7 @@ const FEATURE_POINTS = [
     desc: "Walk-time to the nearest train, metro, or light rail station plus frequency and peak-hour capacity.",
     details: [
       "Straight-line and walking distance to every station within 2 km",
-      "Peak-hour frequency — how many services per hour during AM/PM rush",
+      "Peak-hour frequency, how many services per hour during AM/PM rush",
       "Metro vs heavy rail vs light rail classification with transfer info",
       "Future stations from approved metro extensions (e.g., Metro West)",
       "Connectivity score weighted by distance, frequency, and line coverage",
@@ -36,9 +36,9 @@ const FEATURE_POINTS = [
   {
     lat: -33.7686, lng: 150.9065,
     title: "Live DA Tracker",
-    desc: "Every development application within 2 km — filterable by status, type, and estimated completion date.",
+    desc: "Every development application within 2 km, filterable by status, type, and estimated completion date.",
     details: [
-      "Real-time feed from council DA portals — updated daily",
+      "Real-time feed from council DA portals, updated daily",
       "Filter by status: lodged, under assessment, approved, refused, withdrawn",
       "Estimated cost of works, number of dwellings, and building type",
       "Track what your neighbours are building and what council is approving",
@@ -55,7 +55,7 @@ const FEATURE_POINTS = [
       "Metro extensions, motorway interchanges, and rail corridor upgrades",
       "Hospital expansions, school builds, and community infrastructure",
       "Rezoning proposals and precinct plans that signal future growth",
-      "Impact radius — how close the project is and whether it affects your property",
+      "Impact radius: how close the project is and whether it affects your property",
     ],
     icon: "🏛️",
   },
@@ -64,7 +64,7 @@ const FEATURE_POINTS = [
     title: "Risk Layers",
     desc: "Flood, bushfire, coastal erosion, and contamination overlays sourced directly from council and state datasets.",
     details: [
-      "Flood planning levels — 1-in-100-year ARI mapping from council flood studies",
+      "Flood planning levels from 1-in-100-year ARI mapping from council flood studies",
       "Bushfire Attack Level (BAL) ratings and Asset Protection Zones",
       "Coastal erosion and inundation hazard lines (2050 & 2100 projections)",
       "Contaminated land (CLM/POEO) register entries within proximity",
@@ -79,9 +79,9 @@ const FEATURE_POINTS = [
     details: [
       "Median house and unit prices with 1yr, 3yr, and 5yr growth trajectories",
       "Gross rental yield and vacancy rates sourced from market data",
-      "School catchment boundaries — public primary and secondary",
+      "School catchment boundaries for public primary and secondary",
       "AI-powered perception score: safety, lifestyle, amenity, and investment sentiment",
-      "Demographic snapshot — age, income, household composition, and density",
+      "Demographic snapshot: age, income, household composition, and density",
     ],
     icon: "📊",
   },

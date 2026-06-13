@@ -249,16 +249,13 @@ export async function GET(req: NextRequest) {
   matches.sort((a, b) => (a.distance || 0) - (b.distance || 0));
   const top = matches.slice(0, 15);
 
-  // Geocode up to 3 nearest projects for precise pin placement
-  const toGeocode = top.slice(0, 3);
-  const geocoded = await Promise.all(toGeocode.map((p) => geocodeAddress(p.address)));
+  // Geocode ALL matched projects in parallel for precise pin placement
+  const geocoded = await Promise.all(top.map((p) => geocodeAddress(p.address)));
 
   const results = top.map((p, i) => {
-    // Precise coords from geocoding (first 3 only)
-    let coords: { lat: number; lng: number } | null = i < geocoded.length ? geocoded[i] : null;
+    let coords: { lat: number; lng: number } | null = geocoded[i];
 
     // Validate geocoded coords: if they're more than 20km from the search point, discard
-    // (the project was matched via a centroid within 15km — a geocoded result far away is wrong)
     if (coords && haversineKm(searchLat, searchLng, coords.lat, coords.lng) > 20) {
       coords = null;
     }

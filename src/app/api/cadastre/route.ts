@@ -22,6 +22,31 @@ function calculateGeodesicArea(rings: number[][][]): number {
   return Math.round(Math.abs(area / 2));
 }
 
+/**
+ * Approximate lot frontage and depth from polygon geometry.
+ * Uses axis-aligned bounding box — reasonable for most residential lots.
+ */
+function calculateLotDimensions(rings: number[][][]): { frontage: number; depth: number } | null {
+  const ring = rings[0];
+  if (!ring || ring.length < 4) return null;
+
+  const midLat = ring.reduce((s, [, y]) => s + y, 0) / ring.length;
+  const mPerDegLng = 111320 * Math.cos(midLat * Math.PI / 180);
+  const mPerDegLat = 110540;
+
+  const xs = ring.map(([lng]) => lng * mPerDegLng);
+  const ys = ring.map(([, lat]) => lat * mPerDegLat);
+
+  const width = Math.max(...xs) - Math.min(...xs);
+  const height = Math.max(...ys) - Math.min(...ys);
+
+  // Frontage = shorter dimension, depth = longer
+  const frontage = Math.round(Math.min(width, height) * 10) / 10;
+  const depth = Math.round(Math.max(width, height) * 10) / 10;
+
+  return { frontage, depth };
+}
+
 export async function GET(req: NextRequest) {
   const { response } = await verifyAuth(req);
   if (response) return response;
@@ -40,6 +65,11 @@ export async function GET(req: NextRequest) {
     const feat = data.features[0];
     if (feat.geometry?.rings?.length) {
       feat.attributes.computedArea = calculateGeodesicArea(feat.geometry.rings);
+      const dims = calculateLotDimensions(feat.geometry.rings);
+      if (dims) {
+        feat.attributes.lotFrontage = dims.frontage;
+        feat.attributes.lotDepth = dims.depth;
+      }
     }
   }
 

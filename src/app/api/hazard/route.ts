@@ -62,11 +62,13 @@ export async function GET(req: NextRequest) {
   const lat = parseFloat(req.nextUrl.searchParams.get("lat") || "0");
   const lng = parseFloat(req.nextUrl.searchParams.get("lng") || "0");
 
-  const [bushfire, flood, landslide, acidSulfate, keySites, councilName] = await Promise.all([
+  const [bushfire, flood, landslide, acidSulfate, airportNoise, biodiversity, keySites, councilName] = await Promise.all([
     queryLayer(HAZARD_BASE, 229, lat, lng),
     queryLayer(HAZARD_BASE, 230, lat, lng),
     queryLayer(HAZARD_BASE, 232, lat, lng),
     identifyLayer(PROTECTION_BASE, "234", lat, lng),
+    identifyLayer(PROTECTION_BASE, "235", lat, lng),
+    identifyLayer(PROTECTION_BASE, "768", lat, lng),
     identifyLayer(DCP_BASE, "226", lat, lng),
     getCouncilName(lat, lng),
   ]);
@@ -81,6 +83,8 @@ export async function GET(req: NextRequest) {
     floodDataAvailable,
     landslide,
     acidSulfate: acidSulfate.results || [],
+    airportNoise: airportNoise.results || [],
+    biodiversity: biodiversity.results || [],
     keySites: keySites.results || [],
   });
 }

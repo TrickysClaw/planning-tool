@@ -3,8 +3,8 @@ import { useState, useCallback, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import SearchBar from "../components/SearchBar";
-import BuildSummaryCard from "../components/BuildSummaryCard";
-import ReportCard from "../components/ReportCard";
+import AISummaryCard from "../components/AISummaryCard";
+import LandInfoCard from "../components/LandInfoCard";
 // ConnectivityCard disabled — coming soon
 import PerceptionCard from "../components/PerceptionCard";
 import HDACard from "../components/HDACard";
@@ -107,7 +107,7 @@ const glossary = [
     icon: <MapPinned style={{ color: "var(--text-muted)" }} size={22} />,
     term: "Key Sites",
     short: "Land identified for specific development outcomes",
-    detail: "Key sites are designated in LEPs or SEPPs for particular outcomes — often with special controls, additional permitted uses, or modified development standards.",
+    detail: "Key sites are designated in LEPs or SEPPs for particular outcomes, often with special controls, additional permitted uses, or modified development standards.",
     example: "Key Site → May allow additional height or mixed-use development not normally permitted in the zone.",
   },
   {
@@ -131,6 +131,54 @@ export default function AddressPageWrapper() {
     }>
       <AddressPage />
     </Suspense>
+  );
+}
+
+const loadingSteps = [
+  "Locating property boundaries...",
+  "Checking zoning & planning controls...",
+  "Scanning for hazards: bushfire, flood, landslide...",
+  "Looking up nearby development activity...",
+  "Pulling suburb crime statistics...",
+  "Fetching census demographics & income data...",
+  "Analysing market conditions...",
+  "Generating insights...",
+];
+
+function LoadingIndicator() {
+  const [stepIdx, setStepIdx] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStepIdx((prev) => (prev < loadingSteps.length - 1 ? prev + 1 : prev));
+    }, 1800);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="max-w-[1600px] mx-auto mt-6 flex flex-col items-center justify-center py-24">
+      <div className="relative mb-6">
+        <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
+        <div className="absolute inset-0 w-16 h-16 border-4 border-b-transparent rounded-full animate-spin" style={{ borderColor: "var(--border)", borderBottomColor: "transparent", animationDirection: "reverse", animationDuration: "1.5s" }} />
+      </div>
+      <p className="text-lg font-medium mb-2" style={{ color: "var(--text-primary)" }}>Analysing property</p>
+      <p className="text-sm transition-opacity duration-300" style={{ color: "var(--text-muted)" }} key={stepIdx}>
+        {loadingSteps[stepIdx]}
+      </p>
+      {/* Progress dots */}
+      <div className="flex gap-1.5 mt-4">
+        {loadingSteps.map((_, i) => (
+          <div
+            key={i}
+            className="w-1.5 h-1.5 rounded-full transition-all duration-300"
+            style={{
+              background: i <= stepIdx ? "var(--accent)" : "var(--border)",
+              opacity: i <= stepIdx ? 1 : 0.4,
+            }}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -305,7 +353,7 @@ function AddressPage() {
       fetch(`/api/lga?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ councilName: null, boundary: null })),
       fetch(`/api/hda?address=${encodeURIComponent(address)}&lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ projects: [] })),
       Promise.resolve(null), // connectivity disabled for now
-      fetch(`/api/perception?suburb=${encodeURIComponent(address.split(/\s+/).slice(-2, -1).join("+"))}&lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => null),
+      fetch(`/api/perception?suburb=${encodeURIComponent(address)}&lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => null),
       fetch(`/api/da?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ applications: [] })),
       fetch(`/api/cdc?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ certificates: [] })),
       fetch(`/api/cc?lat=${lat}&lng=${lng}`).then(r => r.json()).catch(() => ({ certificates: [] })),
@@ -327,8 +375,8 @@ function AddressPage() {
     // Process map markers
     const hdaProjects = hda?.projects || [];
     handleHDAProjects(hdaProjects);
-    if (connectivity?.summary) {
-      const allAmenities = Object.values(connectivity.summary).flat() as { type: string; name: string; distance: number; lat: number; lng: number }[];
+    if ((connectivity as any)?.summary) {
+      const allAmenities = Object.values((connectivity as any).summary).flat() as { type: string; name: string; distance: number; lat: number; lng: number }[];
       handleAmenities(allAmenities.filter((a: any) => a.lat && a.lng));
     }
     handleDAResults(daData?.results || []);
@@ -393,18 +441,7 @@ function AddressPage() {
       </div>
 
       <div className="px-4 py-6">
-      {loading && (
-        <div className="max-w-[1600px] mx-auto mt-6 flex flex-col items-center justify-center py-24">
-          <div className="relative mb-6">
-            <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
-            <div className="absolute inset-0 w-16 h-16 border-4 border-b-transparent rounded-full animate-spin" style={{ borderColor: "var(--border)", borderBottomColor: "transparent", animationDirection: "reverse", animationDuration: "1.5s" }} />
-          </div>
-          <p className="text-lg font-medium mb-2" style={{ color: "var(--text-primary)" }}>Analysing property</p>
-          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-            Pulling planning controls, hazards, nearby activity, and market data...
-          </p>
-        </div>
-      )}
+      {loading && <LoadingIndicator />}
 
       {data && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-[1600px] mx-auto">
@@ -412,6 +449,7 @@ function AddressPage() {
           <nav className="flex items-center gap-4 mb-4 overflow-x-auto pb-1 text-xs border-b" style={{ borderColor: "var(--border)" }}>
             {[
               { id: "summary", label: "Summary" },
+              { id: "land", label: "Land" },
               { id: "context", label: "Context" },
               { id: "activity", label: "Activity" },
               { id: "map", label: "Map" },
@@ -422,15 +460,15 @@ function AddressPage() {
             ))}
           </nav>
 
-          {/* Build Summary — the #1 question answered immediately */}
+          {/* AI Summary placeholder */}
           <section id="summary">
-            <BuildSummaryCard data={data} />
+            <AISummaryCard />
           </section>
 
           {/* Site details strip */}
-          <div className="mt-4">
-            <ReportCard data={data} />
-          </div>
+          <section id="land" className="mt-4">
+            <LandInfoCard data={data} />
+          </section>
 
           {coords && (
             <div className="mt-6 flex flex-col xl:flex-row gap-6">

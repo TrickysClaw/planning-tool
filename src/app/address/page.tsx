@@ -11,7 +11,7 @@ import HDACard from "../components/HDACard";
 import NearbyActivityCard from "../components/NearbyActivityCard";
 import PlanningMap from "../components/PlanningMap";
 import type { MapMarker } from "../components/PlanningMap";
-import { BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned, Construction, SlidersHorizontal, Wifi } from "lucide-react";
+import { BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned, Construction, SlidersHorizontal } from "lucide-react";
 import ThemeToggle from "../components/ThemeToggle";
 import Link from "next/link";
 
@@ -474,20 +474,8 @@ function AddressPage() {
             <div className="mt-6 flex flex-col xl:flex-row gap-6">
               {/* Left column: cards */}
               <div className="flex-1 min-w-0 space-y-4">
-                {/* Connectivity + Perception side by side on md+ */}
-                <section id="context" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="relative glass-card">
-                    <div className="absolute inset-0 z-10 rounded-2xl flex items-center justify-center backdrop-blur-[2px]" style={{ background: "var(--bg-overlay, rgba(0,0,0,0.03))" }}>
-                      <span className="px-3 py-1.5 rounded-full text-xs font-medium" style={{ background: "var(--card-bg)", border: "1px solid var(--border)", color: "var(--text-muted)" }}>Coming soon</span>
-                    </div>
-                    <div className="opacity-40 pointer-events-none select-none">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Wifi size={20} style={{ color: "var(--accent)" }} />
-                        <h3 className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>Connectivity Score</h3>
-                      </div>
-                      <p className="text-sm" style={{ color: "var(--text-muted)" }}>Transport, schools, shops, medical &amp; parks nearby.</p>
-                    </div>
-                  </div>
+                {/* Perception */}
+                <section id="context">
                   <PerceptionCard address={data.address} lat={coords?.lat} lng={coords?.lng} initialData={data.perception} />
                 </section>
 

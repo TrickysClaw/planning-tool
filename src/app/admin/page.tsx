@@ -80,9 +80,9 @@ export default function AdminPage() {
   const processed = requests.filter((r) => r.status !== "pending");
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-6 sm:p-6">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Access Requests</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6">Access Requests</h1>
 
         {generatedCreds && (
           <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
@@ -111,24 +111,24 @@ export default function AdminPage() {
               {pending.map((r) => (
                 <div
                   key={r.id}
-                  className="flex items-center justify-between p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl"
                 >
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">{r.email}</p>
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900 dark:text-white truncate">{r.email}</p>
                     <p className="text-xs text-gray-500">{new Date(r.created_at).toLocaleDateString()}</p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 shrink-0">
                     <button
                       onClick={() => handleAction(r.id, "approve")}
                       disabled={actionLoading === r.id}
-                      className="px-3 py-1.5 text-sm font-medium bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg"
+                      className="flex-1 sm:flex-none px-3 py-1.5 text-sm font-medium bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg"
                     >
                       Approve
                     </button>
                     <button
                       onClick={() => handleAction(r.id, "reject")}
                       disabled={actionLoading === r.id}
-                      className="px-3 py-1.5 text-sm font-medium bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-lg"
+                      className="flex-1 sm:flex-none px-3 py-1.5 text-sm font-medium bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-lg"
                     >
                       Reject
                     </button>
@@ -151,10 +151,10 @@ export default function AdminPage() {
               {processed.map((r) => (
                 <div
                   key={r.id}
-                  className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg opacity-70"
+                  className="flex items-center justify-between gap-2 p-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg opacity-70"
                 >
-                  <div>
-                    <p className="text-sm text-gray-900 dark:text-white">{r.email}</p>
+                  <div className="min-w-0">
+                    <p className="text-sm text-gray-900 dark:text-white truncate">{r.email}</p>
                     <p className="text-xs text-gray-500">{new Date(r.created_at).toLocaleDateString()}</p>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full ${

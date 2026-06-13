@@ -55,7 +55,7 @@ export default function LoginPage() {
       <div className="relative w-full max-w-sm">
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-2xl font-semibold tracking-tight text-white">PlanView</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-white">Landlytic</h1>
           <div className="flex items-center justify-center gap-2 mt-3">
             <span className="h-px w-8 bg-neutral-700" />
             <span className="text-[11px] uppercase tracking-[0.2em] text-neutral-500 font-medium">

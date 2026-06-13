@@ -7,6 +7,9 @@ import { createAdminClient } from "@/lib/supabase";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 10000 });
 
+// Model for perception highlights/concerns — separate from insights summary
+const PERCEPTION_MODEL = process.env.PERCEPTION_MODEL || "gpt-4.1-mini";
+
 // Cache results — real data doesn't change often
 const cache = new Map<string, { data: any; ts: number }>();
 const CACHE_TTL = 1000 * 60 * 60 * 24 * 7; // 7 days
@@ -475,7 +478,7 @@ export async function GET(req: NextRequest) {
 
     // === STEP 3: AI interprets data + draws on training knowledge of public opinion ===
     const completion = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
+      model: PERCEPTION_MODEL,
       temperature: 0.4,
       response_format: { type: "json_object" },
       messages: [

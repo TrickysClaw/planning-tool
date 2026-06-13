@@ -197,15 +197,13 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
         {perception.demographics?.familyPercentage != null && perception.demographics.familyPercentage > 0 && (
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
             <Home size={12} style={{ color: "var(--text-muted)" }} />
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Family Households</span>
-            <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>{perception.demographics.familyPercentage}%</span>
+            <span className="text-xs" style={{ color: "var(--text-primary)" }}><span className="font-semibold">{perception.demographics.familyPercentage}%</span> <span style={{ color: "var(--text-muted)" }}>of homes are families</span></span>
           </div>
         )}
         {perception.demographics?.ownerOccupied != null && perception.demographics.ownerOccupied > 0 && perception.demographics.ownerOccupied <= 100 && (
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
             <Home size={12} style={{ color: "var(--text-muted)" }} />
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Owner-Occupied</span>
-            <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>{perception.demographics.ownerOccupied}%</span>
+            <span className="text-xs" style={{ color: "var(--text-primary)" }}><span className="font-semibold">{perception.demographics.ownerOccupied}%</span> <span style={{ color: "var(--text-muted)" }}>own their home</span></span>
           </div>
         )}
       </div>

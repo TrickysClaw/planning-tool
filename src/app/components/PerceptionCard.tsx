@@ -1,8 +1,19 @@
 "use client";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Users, ThumbsUp, AlertTriangle, DollarSign, TrendingUp, Shield, Bot, Loader2 } from "lucide-react";
+import { Users, ThumbsUp, AlertTriangle, DollarSign, TrendingUp, Shield, Bot, Loader2, Home } from "lucide-react";
 import { findSuburbPerception } from "@/data/suburbPerception";
+
+interface CrimeBreakdown {
+  assault: number;
+  breakEnter: number;
+  theft: number;
+  maliciousDamage: number;
+  drugOffences: number;
+  domesticViolence: number;
+  robbery: number;
+  source: "suburb" | "lga";
+}
 
 interface PerceptionData {
   suburb: string;
@@ -10,6 +21,7 @@ interface PerceptionData {
   sentimentScore: number;
   crimeRate: "very low" | "low" | "moderate" | "high" | "very high";
   crimeIndex: number;
+  crimeBreakdown?: CrimeBreakdown | null;
   medianIncome: number;
   medianHousePrice?: number | null;
   demographics: { medianAge?: number; familyPercentage?: number; ownerOccupied?: number };
@@ -19,21 +31,56 @@ interface PerceptionData {
 }
 
 function SentimentFace({ score }: { score: number }) {
-  if (score >= 0.5) return <span className="text-4xl">😊</span>;
-  if (score >= 0.1) return <span className="text-4xl">🙂</span>;
-  if (score >= -0.2) return <span className="text-4xl">😐</span>;
-  if (score >= -0.5) return <span className="text-4xl">😕</span>;
-  return <span className="text-4xl">😟</span>;
+  if (score >= 0.5) return <span className="text-3xl">😊</span>;
+  if (score >= 0.1) return <span className="text-3xl">🙂</span>;
+  if (score >= -0.2) return <span className="text-3xl">😐</span>;
+  if (score >= -0.5) return <span className="text-3xl">😕</span>;
+  return <span className="text-3xl">😟</span>;
 }
 
-function CrimeIndicator({ rate }: { rate: "very low" | "low" | "moderate" | "high" | "very high" }) {
+function CrimeBars({ breakdown, total }: { breakdown: CrimeBreakdown; total: number }) {
+  const categories = [
+    { label: "Theft", value: breakdown.theft },
+    { label: "Assault", value: breakdown.assault },
+    { label: "Break & Enter", value: breakdown.breakEnter },
+    { label: "Domestic Violence", value: breakdown.domesticViolence },
+    { label: "Malicious Damage", value: breakdown.maliciousDamage },
+    { label: "Drug Offences", value: breakdown.drugOffences },
+    { label: "Robbery", value: breakdown.robbery },
+  ].sort((a, b) => b.value - a.value).filter(c => c.value > 0);
+
+  const max = categories[0]?.value || 1;
+
+  return (
+    <div className="space-y-1.5">
+      {categories.slice(0, 5).map((cat) => (
+        <div key={cat.label} className="flex items-center gap-2">
+          <span className="text-[11px] w-28 shrink-0 text-right" style={{ color: "var(--text-muted)" }}>{cat.label}</span>
+          <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ background: "var(--bg-sunken)" }}>
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${Math.max((cat.value / max) * 100, 4)}%`,
+                background: cat.value > total * 0.3 ? "var(--danger)" : cat.value > total * 0.15 ? "var(--warning)" : "var(--accent)",
+                opacity: 0.8,
+              }}
+            />
+          </div>
+          <span className="text-[11px] w-8 shrink-0 tabular-nums" style={{ color: "var(--text-muted)" }}>{cat.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CrimeIndicator({ rate, index }: { rate: string; index?: number | null }) {
   const cssVars: Record<string, string> = { "very low": "var(--success)", low: "var(--success)", moderate: "var(--warning)", high: "var(--danger)", "very high": "var(--danger)" };
   const bgVars: Record<string, string> = { "very low": "var(--success-bg)", low: "var(--success-bg)", moderate: "var(--warning-bg)", high: "var(--danger-bg)", "very high": "var(--danger-bg)" };
-  const labels: Record<string, string> = { "very low": "Very Low Crime", low: "Low Crime Area", moderate: "Moderate Crime", high: "Higher Crime Area", "very high": "High Crime Area" };
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium" style={{ color: cssVars[rate], background: bgVars[rate] }}>
       <Shield size={10} />
-      {labels[rate]}
+      {rate.charAt(0).toUpperCase() + rate.slice(1)} Crime
+      {index != null && <span className="opacity-70">({index}/yr)</span>}
     </span>
   );
 }
@@ -141,6 +188,7 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
       className="glass-card">
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Users size={20} style={{ color: "var(--accent)" }} />
@@ -151,63 +199,71 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
             </span>
           )}
         </div>
-        <CrimeIndicator rate={perception.crimeRate} />
-      </div>
-
-      <div className="flex items-start gap-5 mb-4">
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex items-center gap-2">
           <SentimentFace score={perception.sentimentScore} />
-          <span className="text-xs capitalize" style={{ color: "var(--text-muted)" }}>{perception.sentiment}</span>
-        </div>
-
-        <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {perception.medianIncome != null && perception.medianIncome > 0 && (
-          <div className="p-2 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
-            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>
-              <DollarSign size={10} />
-              Median Income
-            </div>
-            <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>${perception.medianIncome.toLocaleString()}</p>
-          </div>
-          )}
-          {perception.medianHousePrice != null && perception.medianHousePrice > 0 && (
-            <div className="p-2 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
-              <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>
-                <TrendingUp size={10} />
-                Median House
-              </div>
-              <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>${(perception.medianHousePrice / 1000000).toFixed(1)}M</p>
-            </div>
-          )}
-          {perception.demographics?.medianAge != null && perception.demographics.medianAge > 0 && (
-            <div className="p-2 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
-              <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>
-                <Users size={10} />
-                Median Age
-              </div>
-              <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{perception.demographics.medianAge}</p>
-            </div>
-          )}
-          {perception.demographics?.familyPercentage != null && perception.demographics.familyPercentage > 0 && (
-            <div className="p-2 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
-              <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>
-                <Users size={10} />
-                Families
-              </div>
-              <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{perception.demographics.familyPercentage}%</p>
-            </div>
-          )}
-          {perception.demographics?.ownerOccupied != null && perception.demographics.ownerOccupied > 0 && perception.demographics.ownerOccupied <= 100 && (
-            <div className="p-2 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
-              <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>
-                Owner Occupied
-              </div>
-              <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{perception.demographics.ownerOccupied}%</p>
-            </div>
-          )}
         </div>
       </div>
 
+      {/* Demographics strip */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {perception.medianIncome != null && perception.medianIncome > 0 && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
+            <DollarSign size={12} style={{ color: "var(--text-muted)" }} />
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Income</span>
+            <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>${(perception.medianIncome / 1000).toFixed(0)}k</span>
+          </div>
+        )}
+        {perception.medianHousePrice != null && perception.medianHousePrice > 0 && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
+            <TrendingUp size={12} style={{ color: "var(--text-muted)" }} />
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>House</span>
+            <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>${(perception.medianHousePrice / 1000000).toFixed(1)}M</span>
+          </div>
+        )}
+        {perception.demographics?.medianAge != null && perception.demographics.medianAge > 0 && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
+            <Users size={12} style={{ color: "var(--text-muted)" }} />
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Age</span>
+            <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>{perception.demographics.medianAge}</span>
+          </div>
+        )}
+        {perception.demographics?.familyPercentage != null && perception.demographics.familyPercentage > 0 && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
+            <Home size={12} style={{ color: "var(--text-muted)" }} />
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Families</span>
+            <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>{perception.demographics.familyPercentage}%</span>
+          </div>
+        )}
+        {perception.demographics?.ownerOccupied != null && perception.demographics.ownerOccupied > 0 && perception.demographics.ownerOccupied <= 100 && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--bg-sunken)" }}>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Owners</span>
+            <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>{perception.demographics.ownerOccupied}%</span>
+          </div>
+        )}
+      </div>
+
+      {/* Crime section */}
+      {perception.crimeRate && (
+        <div className="mb-4 p-3 rounded-xl" style={{ background: "var(--bg-sunken)", border: "1px solid var(--border)" }}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5">
+              <Shield size={14} style={{ color: "var(--text-muted)" }} />
+              <span className="text-xs font-medium" style={{ color: "var(--text-primary)" }}>Crime Statistics</span>
+              {perception.crimeBreakdown?.source && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "var(--card-bg)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
+                  {perception.crimeBreakdown.source === "suburb" ? "suburb-level" : "LGA-level"}
+                </span>
+              )}
+            </div>
+            <CrimeIndicator rate={perception.crimeRate} index={perception.crimeIndex} />
+          </div>
+          {perception.crimeBreakdown && perception.crimeIndex > 0 && (
+            <CrimeBars breakdown={perception.crimeBreakdown} total={perception.crimeIndex} />
+          )}
+        </div>
+      )}
+
+      {/* Highlights & Concerns */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="p-3 rounded-lg" style={{ background: "var(--success-bg)", border: "1px solid var(--success-border)" }}>
           <div className="flex items-center gap-1.5 mb-2">
@@ -239,7 +295,7 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
         </div>
       </div>
 
-      {/* Sources / data quality badge */}
+      {/* Sources */}
       <div className="mt-3 flex items-center gap-2 p-2 rounded-lg" style={{ background: "var(--bg-sunken)", border: "1px solid var(--border)" }}>
         <Bot size={14} style={{ color: "var(--accent)" }} />
         <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>

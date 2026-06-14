@@ -4,7 +4,11 @@ import OpenAI from "openai";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 30000 });
+let _openai: OpenAI | null = null;
+function getOpenAI() {
+  if (!_openai) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 30000 });
+  return _openai;
+}
 
 // Model for insights - separate from perception highlights/concerns
 const INSIGHTS_MODEL = process.env.INSIGHTS_MODEL || "gpt-4.1-mini";
@@ -104,7 +108,7 @@ export async function POST(request: NextRequest) {
   const context = buildContext(address, siteData);
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: INSIGHTS_MODEL,
       temperature: 0.3,
       messages: [

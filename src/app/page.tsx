@@ -77,7 +77,7 @@ export default function Home() {
             </Link>
           </div>
           <div className="flex items-center gap-1.5 ml-2">
-            {userEmail === process.env.NEXT_PUBLIC_ADMIN_EMAIL && (
+            {(process.env.NEXT_PUBLIC_ADMIN_EMAIL || "").split(",").map(e => e.trim().toLowerCase()).includes((userEmail || "").toLowerCase()) && (
               <Link href="/admin" className="p-2 rounded-lg border cursor-pointer transition-all duration-150 hover:scale-110 hover:shadow-md active:scale-95" style={{ background: "var(--input-bg)", borderColor: "var(--border)", color: "var(--text-secondary)" }} title="Admin">
                 <Shield size={18} />
               </Link>

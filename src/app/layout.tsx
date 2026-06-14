@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "PlanView",
+  title: "Landlytic",
   description: "Uncover the hidden potential of any property",
 };
 

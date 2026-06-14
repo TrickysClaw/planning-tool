@@ -17,6 +17,7 @@ import {
   Building2,
   ArrowUpDown,
   Layers,
+  Home,
 } from "lucide-react";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -120,6 +121,12 @@ export default function LandInfoCard({ data }: { data: any }) {
   const hasAirportNoise = airportNoise.length > 0;
   const hasKeySite = keySites.length > 0;
 
+  const zoneBase = zoneCode?.replace(/\s.*/, "") || "";
+  const SENIORS_HOUSING_ZONES = ["R1","R2","R3","R4","RU5","B1","B2","B3","B4","B5","B6","B7","B8","RE2","SP1","SP2"];
+  const hasSeniorsHousing = SENIORS_HOUSING_ZONES.includes(zoneBase);
+  const zoneDesc = ZONE_DESCRIPTIONS[zoneBase] || "Check with council for permitted uses";
+  const zoneTooltip = `${zoneName}. ${zoneDesc}`;
+
   const overlays = [
     {
       icon: <Landmark size={16} />,
@@ -183,11 +190,14 @@ export default function LandInfoCard({ data }: { data: any }) {
         ? "LEP Key Site. May unlock bonus height, FSR or uses not normally permitted in this zone"
         : "Not a key site, standard zone controls apply",
     },
+    {
+      icon: <Home size={16} />,
+      active: hasSeniorsHousing,
+      tooltip: hasSeniorsHousing
+        ? `Seniors Housing SEPP may apply (zone ${zoneBase}). May permit seniors/disability housing subject to further requirements`
+        : "Zone not eligible for Seniors Housing SEPP",
+    },
   ];
-
-  const zoneBase = zoneCode?.replace(/\s.*/, "") || "";
-  const zoneDesc = ZONE_DESCRIPTIONS[zoneBase] || "Check with council for permitted uses";
-  const zoneTooltip = `${zoneName}. ${zoneDesc}`;
 
   const metrics = [
     zoneCode && { icon: <Building2 size={13} />, label: "Zone", value: zoneCode, tooltip: zoneTooltip },
@@ -241,6 +251,7 @@ export default function LandInfoCard({ data }: { data: any }) {
           ))}
         </div>
       </div>
+
     </motion.div>
   );
 }

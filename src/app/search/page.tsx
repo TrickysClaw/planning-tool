@@ -206,7 +206,7 @@ export default function SearchPage() {
       <div className="sticky top-0 z-40 backdrop-blur-xl border-b" style={{ background: "var(--bg-elevated)", borderColor: "var(--border)" }}>
         <div className="max-w-[1800px] mx-auto px-4 py-3 flex items-center gap-2 sm:gap-4">
           <Link href="/" className="font-semibold text-sm shrink-0 transition" style={{ color: "var(--accent)" }}>
-            PlanView
+            Landlytic
           </Link>
           <div className="flex items-center gap-1 overflow-x-auto">
             <Link href="/" className="px-3 py-1.5 rounded-lg text-xs sm:text-sm transition whitespace-nowrap" style={{ color: "var(--text-muted)" }}>

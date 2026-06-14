@@ -133,6 +133,19 @@ export default function NearbyActivityCard({
   const determined = items.filter((d) => d.status?.toLowerCase().includes("determined")).length;
   const totalValue = items.reduce((sum, d) => sum + (d.costOfDevelopment || 0), 0);
   const approvalRate = items.length > 0 ? Math.round((determined / items.length) * 100) : 0;
+
+  // Average assessment period (days from lodgement to determination)
+  const avgAssessmentDays = useMemo(() => {
+    const withBothDates = items.filter((d) => d.lodgementDate && d.determinationDate);
+    if (withBothDates.length < 3) return null;
+    const totalDays = withBothDates.reduce((sum, d) => {
+      const lodge = new Date(d.lodgementDate).getTime();
+      const det = new Date(d.determinationDate!).getTime();
+      return sum + Math.max(0, (det - lodge) / (1000 * 60 * 60 * 24));
+    }, 0);
+    return Math.round(totalDays / withBothDates.length);
+  }, [items]);
+
   const visible = expanded ? filtered : filtered.slice(0, 5);
 
   return (
@@ -197,6 +210,12 @@ export default function NearbyActivityCard({
               <span style={{ color: "var(--text-muted)" }}>Approval:</span>{" "}
               <span className="font-semibold" style={{ color: "#7C3AED" }}>{approvalRate}%</span>
             </div>
+            {avgAssessmentDays !== null && (
+              <div className="px-3 py-1.5 rounded-lg text-sm" style={{ background: "rgba(234, 88, 12, 0.1)", border: "1px solid rgba(234, 88, 12, 0.2)" }}>
+                <span style={{ color: "var(--text-muted)" }}>Avg Assessment:</span>{" "}
+                <span className="font-semibold" style={{ color: "#EA580C" }}>{avgAssessmentDays} days</span>
+              </div>
+            )}
           </div>
 
           {/* Filters */}

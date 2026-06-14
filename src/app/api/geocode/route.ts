@@ -28,18 +28,34 @@ export async function GET(req: NextRequest) {
 
       try {
         const lotRes = await fetch(`${LOT_URL}?propid=${addr.propId}`);
-        if (!lotRes.ok) continue;
-        const lots = await lotRes.json();
-        if (!lots.length || !lots[0].geometry?.rings?.[0]) continue;
-
-        const ring = lots[0].geometry.rings[0] as number[][];
-        const mx = ring.reduce((s, p) => s + p[0], 0) / ring.length;
-        const my = ring.reduce((s, p) => s + p[1], 0) / ring.length;
-        const { lat, lng } = webMercatorToWGS84(mx, my);
-
-        results.push({ display_name: addr.address, lat: lat.toString(), lon: lng.toString(), propId: addr.propId });
+        if (lotRes.ok) {
+          const lots = await lotRes.json();
+          if (lots.length && lots[0].geometry?.rings?.[0]) {
+            const ring = lots[0].geometry.rings[0] as number[][];
+            const mx = ring.reduce((s, p) => s + p[0], 0) / ring.length;
+            const my = ring.reduce((s, p) => s + p[1], 0) / ring.length;
+            const { lat, lng } = webMercatorToWGS84(mx, my);
+            results.push({ display_name: addr.address, lat: lat.toString(), lon: lng.toString(), propId: addr.propId });
+            if (results.length >= 5) break;
+            continue;
+          }
+        }
       } catch {
-        // Skip failed lot lookups
+        // Lot lookup failed - try Nominatim fallback below
+      }
+
+      // Fallback: geocode this specific address via Nominatim when lot geometry unavailable
+      try {
+        const nomRes = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addr.address + ", NSW, Australia")}&format=json&limit=1&countrycodes=au&addressdetails=1`,
+          { headers: { "User-Agent": "NSWPlanningTool/1.0" } }
+        );
+        const nomData = await nomRes.json();
+        if (nomData.length > 0) {
+          results.push({ display_name: addr.address, lat: nomData[0].lat, lon: nomData[0].lon, propId: addr.propId });
+        }
+      } catch {
+        // Skip if Nominatim also fails
       }
 
       if (results.length >= 5) break;

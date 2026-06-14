@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, TrendingUp, AlertTriangle, Home, BarChart3, Heart, Loader2 } from "lucide-react";
+import { TrendingUp, AlertTriangle, Home, BarChart3, Heart, Loader2 } from "lucide-react";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -31,13 +31,32 @@ const SENTIMENT_COLORS: Record<string, { text: string; bg: string }> = {
   negative: { text: "var(--danger)", bg: "var(--danger-bg)" },
 };
 
+function extractSuburb(address?: string): string {
+  if (!address) return "";
+  // NSW addresses: "123 Street Name, SUBURB, NSW 2000" or "123 Street Name, SUBURB"
+  const parts = address.split(",").map(p => p.trim());
+  if (parts.length >= 2) {
+    // Second-to-last part is usually suburb (last is state/postcode)
+    const candidate = parts.length >= 3 ? parts[parts.length - 2] : parts[1];
+    // Remove postcode/state suffix if present
+    return candidate.replace(/\s*(NSW|VIC|QLD|SA|WA|TAS|NT|ACT)\s*\d{0,4}\s*$/i, "").trim();
+  }
+  return "";
+}
+
 export default function AISummaryCard({ address, siteData }: { address?: string; siteData?: any }) {
   const [insights, setInsights] = useState<InsightsData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fetchedRef = useRef<string | null>(null);
+  const suburb = extractSuburb(address);
+  const heading = suburb || "Market Insights";
 
   useEffect(() => {
     if (!address || !siteData) return;
+    // Prevent double-fetch for the same address
+    if (fetchedRef.current === address) return;
+    fetchedRef.current = address;
 
     setLoading(true);
     setError(null);
@@ -58,6 +77,7 @@ export default function AISummaryCard({ address, siteData }: { address?: string;
       .catch((err) => {
         console.error("Insights error:", err);
         setError("Unable to generate AI insights");
+        fetchedRef.current = null; // allow retry on error
       })
       .finally(() => setLoading(false));
   }, [address, siteData]);
@@ -69,9 +89,8 @@ export default function AISummaryCard({ address, siteData }: { address?: string;
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <div className="glass-card">
-          <div className="flex items-center gap-3 mb-3">
-            <Sparkles size={20} style={{ color: "var(--accent)" }} />
-            <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>AI Property Insights</h2>
+          <div className="mb-3">
+            <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>{heading}</h2>
           </div>
           <div className="flex items-center justify-center gap-3 py-8">
             <Loader2 size={18} className="animate-spin" style={{ color: "var(--accent)" }} />
@@ -86,9 +105,8 @@ export default function AISummaryCard({ address, siteData }: { address?: string;
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <div className="glass-card">
-          <div className="flex items-center gap-3 mb-3">
-            <Sparkles size={20} style={{ color: "var(--accent)" }} />
-            <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>AI Property Insights</h2>
+          <div className="mb-3">
+            <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>{heading}</h2>
           </div>
           <div className="rounded-xl p-4" style={{ background: "var(--bg-sunken)", border: "1px dashed var(--border)" }}>
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
@@ -104,12 +122,8 @@ export default function AISummaryCard({ address, siteData }: { address?: string;
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <div className="glass-card">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <Sparkles size={20} style={{ color: "var(--accent)" }} />
-          <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>AI Property Insights</h2>
-          <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: "var(--accent-subtle)", color: "var(--accent)" }}>
-            GPT-4.1
-          </span>
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>{heading}</h2>
         </div>
 
         {/* Executive Summary */}
@@ -133,7 +147,7 @@ export default function AISummaryCard({ address, siteData }: { address?: string;
                 style={{ background: colors.bg, border: `1px solid color-mix(in srgb, ${colors.text} 20%, transparent)` }}
               >
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span style={{ color: colors.text }}>{CATEGORY_ICONS[insight.category] || <Sparkles size={14} />}</span>
+                  <span style={{ color: colors.text }}>{CATEGORY_ICONS[insight.category] || <BarChart3 size={14} />}</span>
                   <span className="text-[11px] font-medium" style={{ color: colors.text }}>{insight.category}</span>
                 </div>
                 <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>{insight.headline}</p>

@@ -43,6 +43,7 @@ interface SSDAProject {
   title: string;
   address: string;
   detailUrl: string;
+  coords?: { lat: number; lng: number } | null;
 }
 
 function parseProjectsFromHTML(html: string): SSDAProject[] {
@@ -139,5 +140,24 @@ export async function GET(req: NextRequest) {
   }
 
   const projects = await scrapeProjects(lgaNum);
+
+  // Geocode projects that have an address
+  await Promise.all(
+    projects.map(async (p) => {
+      if (!p.address) return;
+      try {
+        const q = encodeURIComponent(`${p.address}, NSW, Australia`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`, {
+          headers: { "User-Agent": "PlanningTool/1.0" },
+        });
+        if (!res.ok) return;
+        const results = await res.json();
+        if (results.length > 0) {
+          p.coords = { lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon) };
+        }
+      } catch { /* skip failed geocodes */ }
+    })
+  );
+
   return NextResponse.json({ projects, lga: lgaParam });
 }

@@ -3,7 +3,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * PlanView Design Tokens
+ * Landlytic Design Tokens
  * ----------------------
  * Neutral-first. Accent is near-black/white - no purple, no blue.
  * Professional, understated, hard to pin as AI-generated.
@@ -277,12 +277,13 @@ body.map-fullscreen .sticky {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem 0.5rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
   border: 1px solid transparent;
-  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: background 150ms ease, color 150ms ease, border-color 150ms ease, transform 150ms ease;
 }
@@ -297,6 +298,7 @@ body.map-fullscreen .sticky {
   background: var(--accent-subtle);
   color: var(--accent);
   border-color: var(--accent-border);
+  border-bottom-color: var(--accent);
 }
 
 /* --- Dropdown result item (search results, history) --- */
@@ -339,4 +341,124 @@ body.map-fullscreen .sticky {
 .link-external:hover {
   color: var(--accent-hover);
   text-decoration: underline;
+}
+
+/* === Onboarding Modal === */
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(4px);
+  padding: 1rem;
+}
+.onboarding-modal {
+  position: relative;
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+  padding: 2rem;
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.onboarding-modal h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem;
+}
+.onboarding-subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0 0 1.5rem;
+}
+.onboarding-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+.onboarding-close:hover {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+}
+.onboarding-section {
+  margin-bottom: 1.5rem;
+}
+.onboarding-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+.onboarding-optional {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.onboarding-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1.5px solid var(--card-border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 150ms ease;
+}
+.onboarding-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.onboarding-textarea::placeholder {
+  color: var(--text-muted);
+}
+.onboarding-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1.5px solid var(--card-border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-family: inherit;
+  transition: border-color 150ms ease;
+}
+.onboarding-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.onboarding-input::placeholder {
+  color: var(--text-muted);
+}
+.onboarding-submit {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--accent);
+  color: var(--text-inverted);
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+.onboarding-submit:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.onboarding-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

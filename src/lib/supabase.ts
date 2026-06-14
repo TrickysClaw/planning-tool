@@ -1,15 +1,22 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { createBrowserClient as createSSRBrowserClient } from "@supabase/ssr";
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+
 // Singleton browser client
 let browserClient: SupabaseClient | null = null;
 
 export function createBrowserClient() {
   if (browserClient) return browserClient;
-  browserClient = createSSRBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // Return a dummy client during build/prerender when env vars are missing
+    return createSSRBrowserClient(
+      "https://placeholder.supabase.co",
+      "placeholder-key"
+    );
+  }
+  browserClient = createSSRBrowserClient(supabaseUrl, supabaseAnonKey);
   return browserClient;
 }
 

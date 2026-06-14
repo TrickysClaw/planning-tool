@@ -41,9 +41,9 @@ export async function GET(req: NextRequest) {
 
   const councilName = await getCouncilName(lat, lng);
   const councilNames = councilName ? [councilName] : [];
-  const oneYearAgo = new Date();
-  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-  const dateFrom = oneYearAgo.toISOString().slice(0, 10);
+  const twoYearsAgo = new Date();
+  twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+  const dateFrom = twoYearsAgo.toISOString().slice(0, 10);
 
   const allResults: any[] = [];
 

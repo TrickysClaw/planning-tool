@@ -12,7 +12,7 @@ function getOpenAI() {
 }
 
 // Model for perception highlights/concerns - separate from insights summary
-const PERCEPTION_MODEL = process.env.PERCEPTION_MODEL || "gpt-4.1-mini";
+const PERCEPTION_MODEL = process.env.PERCEPTION_MODEL || "gpt-5.4-mini";
 
 // Cache results - real data doesn't change often
 const cache = new Map<string, { data: any; ts: number }>();

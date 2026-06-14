@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "@/lib/auth";
+import { createServerClient } from "@supabase/ssr";
 import OpenAI from "openai";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -11,7 +11,7 @@ function getOpenAI() {
 }
 
 // Model for insights - separate from perception highlights/concerns
-const INSIGHTS_MODEL = process.env.INSIGHTS_MODEL || "gpt-4.1-mini";
+const INSIGHTS_MODEL = process.env.INSIGHTS_MODEL || "gpt-5.4-mini";
 
 // Cache insights by address
 const cache = new Map<string, { data: any; ts: number }>();
@@ -24,6 +24,8 @@ CRITICAL RULES:
 2. Every insight MUST combine 2+ data points OR apply specialist knowledge the data alone doesn't reveal.
 3. Be specific with numbers - calculate yields, ratios, thresholds, and dollar impacts.
 4. Include at least one insight the client would NOT have thought of.
+5. NEVER claim physical attributes you cannot verify from the provided data (views, aspect, elevation, noise levels, natural light, proximity to specific landmarks, streetscape character etc.) unless this information is EXPLICITLY present in the data. If data doesn't confirm it, don't state it.
+6. Only reference facts that are explicitly provided in the dataset. Do not infer or assume physical characteristics of the property or its surroundings.
 
 NSW PROPERTY DEVELOPMENT KNOWLEDGE (use to derive insights):
 
@@ -83,12 +85,87 @@ OUTPUT FORMAT - respond in valid JSON only:
 Provide 5-6 insights. Requirements:
 - At least 2 must include a dollar figure or calculated metric
 - At least 1 must identify a non-obvious risk
-- At least 1 must suggest a specific action the buyer could take
+- At least 1 must suggest a specific action the client could take
 - ZERO insights should be achievable by just reading the raw data - every single one must add analytical value`;
 
+// Match free-text role to known prompt overlay keys
+function matchRoleToKey(role: string): string | null {
+  const r = role.toLowerCase();
+  if (r.includes("owner") || r.includes("homeowner") || r.includes("home buyer")) return "property_owner";
+  if (r.includes("develop")) return "developer";
+  if (r.includes("invest") || r.includes("buyer")) return "investor";
+  if (r.includes("planner") || r.includes("planning")) return "town_planner";
+  if (r.includes("project manag") || r.includes("pm") || r.includes("construction")) return "project_manager";
+  return null;
+}
+
+// Role-specific prompt overlays
+const ROLE_PROMPTS: Record<string, string> = {
+  property_owner: `CLIENT CONTEXT: This client is a PROPERTY OWNER - they likely already own this site or are considering purchasing it for personal use/long-term hold. Focus on:
+- What can they DO with their land right now (subdivide, add a granny flat, dual-occ)?
+- What permissions/approvals pathway is simplest?
+- What's the uplift potential if they develop vs sell as-is?
+- What risks could affect their property value?
+- Think like their trusted advisor helping them unlock hidden value from their own asset.
+Frame the summary as what they should DO with their property.`,
+
+  developer: `CLIENT CONTEXT: This client is a PROPERTY DEVELOPER - they're evaluating this site as a development opportunity for profit. Focus on:
+- Feasibility: what's the highest-and-best-use development? (dual-occ, townhouses, apartments?)
+- Numbers: GRV, construction cost estimates, profit margin potential
+- Planning pathway: DA vs CDC, likely assessment timeframe, council disposition
+- Competition: what are nearby developers doing? Is this area already saturated?
+- Risk-adjusted return: what could go wrong and what's the downside exposure?
+Frame the summary as a go/no-go recommendation with expected profit range.`,
+
+  investor: `CLIENT CONTEXT: This client is a PROPERTY INVESTOR - they're evaluating this site for capital growth and/or rental yield. Focus on:
+- Yield analysis: estimated rental return vs purchase price
+- Capital growth signals: demographic trends, infrastructure pipeline, rezoning potential
+- Risk factors that could erode returns (supply glut, strata issues, insurance costs)
+- Comparable investment alternatives in the area
+- Hold period recommendation and exit strategy
+Frame the summary as an investment thesis with expected ROI timeframe.`,
+
+  town_planner: `CLIENT CONTEXT: This client is a TOWN PLANNER - they need technical planning analysis for a client assessment or pre-DA advice. Focus on:
+- Development standards compliance: height, FSR, setbacks, lot size thresholds
+- Applicable SEPPs and their override effects on LEP controls
+- Likely merit assessment issues and precedent from nearby DAs
+- Clause 4.6 variation potential if controls are constraining
+- Council's demonstrated position based on nearby determination patterns
+Frame the summary as a professional planning opinion on development feasibility.`,
+
+  project_manager: `CLIENT CONTEXT: This client is a PROJECT MANAGER - they need to understand scope, timeline, and coordination requirements. Focus on:
+- Likely approval pathway and realistic timeline (pre-DA, DA, CC stages)
+- Key consultants needed (heritage, traffic, arborist, geotech etc.) based on site constraints
+- Construction complexity signals from the site and nearby builds
+- Staging opportunities and critical path items
+- Budget risk factors and contingency recommendations
+Frame the summary as a project brief highlighting scope, timeline risks, and coordination needs.`,
+};
+
+function getSupabaseFromRequest(request: NextRequest) {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return request.cookies.getAll(); },
+        setAll() { /* read-only */ },
+      },
+    }
+  );
+}
+
 export async function POST(request: NextRequest) {
-  const { response } = await verifyAuth(request);
-  if (response) return response;
+  const supabase = getSupabaseFromRequest(request);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Fetch user profile for role-based prompt
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, goal")
+    .eq("id", user.id)
+    .single();
 
   const body = await request.json();
   const { address, siteData } = body;
@@ -97,8 +174,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "address and siteData are required" }, { status: 400 });
   }
 
-  // Check cache
-  const cacheKey = address.toLowerCase().trim();
+  // Check cache (include role in key so different roles get different insights)
+  const userRole = (profile?.role || "investor").toLowerCase().trim();
+  const cacheKey = `${address.toLowerCase().trim()}::${userRole}`;
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.ts < CACHE_TTL) {
     return NextResponse.json(cached.data);
@@ -107,6 +185,20 @@ export async function POST(request: NextRequest) {
   // Build a comprehensive context string from all the collected data
   const context = buildContext(address, siteData);
 
+  // Build system prompt with role-specific overlay
+  let systemPrompt = SYSTEM_PROMPT;
+  // Match free-text role to known overlays, or inject directly
+  const roleKey = matchRoleToKey(userRole);
+  const roleOverlay = roleKey ? ROLE_PROMPTS[roleKey] : null;
+  if (roleOverlay) {
+    systemPrompt += `\n\n${roleOverlay}`;
+  } else if (userRole) {
+    systemPrompt += `\n\nCLIENT CONTEXT: This client describes themselves as a "${profile?.role}". Tailor your insights to what would be most relevant and actionable for someone in that role.`;
+  }
+  if (profile?.goal) {
+    systemPrompt += `\n\nCLIENT'S STATED GOAL: "${profile.goal}" — tailor your analysis and recommendations to help them achieve this specific objective.`;
+  }
+
   try {
     const response = await getOpenAI().chat.completions.create({
       model: INSIGHTS_MODEL,
@@ -114,7 +206,7 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: "system",
-          content: SYSTEM_PROMPT,
+          content: systemPrompt,
         },
         {
           role: "user",
@@ -194,9 +286,15 @@ function buildContext(address: string, data: any): string {
   const das = data.da?.results || [];
   if (das.length > 0) {
     parts.push(`NEARBY DAs: ${das.length} applications within radius`);
-    const recentDAs = das.slice(0, 5).map((d: any) =>
-      `- ${d.description || d.type?.join(", ") || "Unknown"} (${d.status || "N/A"}, cost: $${(d.costOfDevelopment || 0).toLocaleString()})`
-    );
+    const recentDAs = das.slice(0, 10).map((d: any) => {
+      const details = [d.status || "N/A", `cost: $${(d.costOfDevelopment || 0).toLocaleString()}`];
+      if (d.dwellings) details.push(`${d.dwellings} dwellings`);
+      if (d.storeys) details.push(`${d.storeys} storeys`);
+      if (d.lodgementDate) details.push(`lodged: ${d.lodgementDate.slice(0, 10)}`);
+      if (d.determinationDate) details.push(`determined: ${d.determinationDate.slice(0, 10)}`);
+      if (d.distance) details.push(`${d.distance}m away`);
+      return `- ${d.description || d.type?.join(", ") || "Unknown"} (${details.join(", ")})`;
+    });
     parts.push(recentDAs.join("\n"));
   }
 
@@ -204,18 +302,48 @@ function buildContext(address: string, data: any): string {
   const cdcs = data.cdc?.results || [];
   if (cdcs.length > 0) {
     parts.push(`NEARBY CDCs: ${cdcs.length} complying development certificates`);
+    const recentCDCs = cdcs.slice(0, 5).map((d: any) => {
+      const details = [d.status || "N/A", `cost: $${(d.costOfDevelopment || 0).toLocaleString()}`];
+      if (d.dwellings) details.push(`${d.dwellings} dwellings`);
+      if (d.storeys) details.push(`${d.storeys} storeys`);
+      if (d.lodgementDate) details.push(`lodged: ${d.lodgementDate.slice(0, 10)}`);
+      if (d.distance) details.push(`${d.distance}m away`);
+      return `- ${d.description || d.type?.join(", ") || "Unknown"} (${details.join(", ")})`;
+    });
+    parts.push(recentCDCs.join("\n"));
   }
 
   // CCs
   const ccs = data.cc?.results || [];
   if (ccs.length > 0) {
     parts.push(`NEARBY CONSTRUCTION CERTIFICATES: ${ccs.length}`);
+    const recentCCs = ccs.slice(0, 5).map((d: any) => {
+      const details = [d.status || "N/A", `cost: $${(d.costOfDevelopment || 0).toLocaleString()}`];
+      if (d.units) details.push(`${d.units} units`);
+      if (d.storeys) details.push(`${d.storeys} storeys`);
+      if (d.proposedFloorArea) details.push(`${d.proposedFloorArea}m² proposed`);
+      if (d.proposedUse) details.push(`use: ${d.proposedUse}`);
+      if (d.determinationDate) details.push(`determined: ${d.determinationDate.slice(0, 10)}`);
+      if (d.distance) details.push(`${d.distance}m away`);
+      return `- ${d.description || d.type?.join(", ") || "Unknown"} (${details.join(", ")})`;
+    });
+    parts.push(recentCCs.join("\n"));
   }
 
   // HDA
   const hda = data.hda || [];
   if (hda.length > 0) {
     parts.push(`HDA PROJECTS NEARBY: ${hda.length} Housing Delivery Authority proposals in vicinity`);
+    const hdaDetails = hda.slice(0, 5).map((p: any) => {
+      const details: string[] = [];
+      if (p.type) details.push(p.type);
+      if (p.dwellings) details.push(`${p.dwellings} dwellings`);
+      if (p.outcome) details.push(`outcome: ${p.outcome}`);
+      if (p.recommendation) details.push(`recommendation: ${p.recommendation}`);
+      if (p.distance) details.push(`${p.distance}m away`);
+      return `- ${p.address || p.description || "Unknown"} (${details.join(", ")})`;
+    });
+    parts.push(hdaDetails.join("\n"));
   }
 
   return parts.join("\n");

@@ -9,6 +9,7 @@ import LandInfoCard from "../components/LandInfoCard";
 import PerceptionCard from "../components/PerceptionCard";
 import HDACard from "../components/HDACard";
 import NearbyActivityCard from "../components/NearbyActivityCard";
+import SSDACard from "../components/SSDACard";
 import PlanningMap from "../components/PlanningMap";
 import type { MapMarker } from "../components/PlanningMap";
 import { BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned, History } from "lucide-react";
@@ -198,6 +199,7 @@ function AddressPage() {
   const [cdcMarkers, setCdcMarkers] = useState<MapMarker[]>([]);
   const [ccMarkers, setCcMarkers] = useState<MapMarker[]>([]);
   const [amenityMarkers, setAmenityMarkers] = useState<MapMarker[]>([]);
+  const [ssdaMarkers, setSsdaMarkers] = useState<MapMarker[]>([]);
   const [lotPolygon, setLotPolygon] = useState<[number, number][] | undefined>(undefined);
   const [lgaBoundary, setLgaBoundary] = useState<[number, number][] | undefined>(undefined);
   const [zoneCode, setZoneCode] = useState<string>("");
@@ -342,6 +344,21 @@ function AddressPage() {
     setAmenityMarkers(markers);
   }, []);
 
+  const handleSSDAProjects = useCallback((projects: any[]) => {
+    const markers: MapMarker[] = projects
+      .filter((p: any) => p.coords?.lat && p.coords?.lng)
+      .map((p: any) => ({
+        lat: p.coords.lat,
+        lng: p.coords.lng,
+        label: p.address || p.title,
+        color: "ssda" as any,
+        description: p.title,
+        status: p.status || undefined,
+        link: p.detailUrl || undefined,
+      }));
+    setSsdaMarkers(markers);
+  }, []);
+
   async function fetchData(address: string, lat: number, lng: number) {
     setCoords({ lat, lng });
     setLoading(true);
@@ -448,7 +465,7 @@ function AddressPage() {
             <History size={18} />
           </button>
           <Link href="/" className="font-semibold text-sm shrink-0 transition" style={{ color: "var(--accent)" }}>
-            PlanView
+            Landlytic
           </Link>
           <div className="flex-1 max-w-2xl">
             <SearchBar compact onSelect={handleSelect} searchHistory={searchHistory} onHistoryClick={handleHistoryClick} />
@@ -463,20 +480,10 @@ function AddressPage() {
 
       {data && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-[1600px] mx-auto">
-          {/* Jump links */}
-          <nav className="flex items-center gap-4 mb-4 overflow-x-auto pb-1 text-xs border-b" style={{ borderColor: "var(--border)" }}>
-            {[
-              { id: "summary", label: "Summary" },
-              { id: "land", label: "Land" },
-              { id: "context", label: "Context" },
-              { id: "activity", label: "Activity" },
-              { id: "map", label: "Map" },
-            ].map((link) => (
-              <a key={link.id} href={`#${link.id}`} className="pb-2 transition whitespace-nowrap hover:opacity-100 opacity-60" style={{ color: "var(--text-primary)", borderBottom: "1px solid transparent" }}>
-                {link.label}
-              </a>
-            ))}
-          </nav>
+          {/* Address heading */}
+          <div className="mb-4 pb-2 border-b" style={{ borderColor: "var(--border)" }}>
+            <p className="text-xs opacity-60" style={{ color: "var(--text-primary)" }}>{data.address}</p>
+          </div>
 
           {/* AI Summary */}
           <section id="summary">
@@ -504,12 +511,19 @@ function AddressPage() {
                 <section id="activity">
                   <NearbyActivityCard lat={coords.lat} lng={coords.lng} onDAs={handleDAResults} onCDCs={handleCDCResults} onCCs={handleCCResults} onItemClick={handleItemClick} initialDA={data.da} initialCDC={data.cdc} initialCC={data.cc} />
                 </section>
+
+                {/* SSDA Major Projects */}
+                {data.councilName && (
+                  <section id="ssda">
+                    <SSDACard lga={data.councilName} onProjects={handleSSDAProjects} />
+                  </section>
+                )}
               </div>
 
               {/* Right column: sticky map */}
               <div className="xl:w-[480px] shrink-0" id="map">
                 <div className="xl:sticky xl:top-20">
-                  <PlanningMap lat={coords.lat} lng={coords.lng} markers={[...hdaMarkers, ...daMarkers, ...cdcMarkers, ...ccMarkers, ...amenityMarkers]} polygon={lotPolygon} lgaBoundary={lgaBoundary} zoneCode={zoneCode} streetViewUrl={streetViewUrl || undefined} focusPoint={focusPoint} />
+                  <PlanningMap lat={coords.lat} lng={coords.lng} markers={[...hdaMarkers, ...daMarkers, ...cdcMarkers, ...ccMarkers, ...amenityMarkers, ...ssdaMarkers]} polygon={lotPolygon} lgaBoundary={lgaBoundary} zoneCode={zoneCode} streetViewUrl={streetViewUrl || undefined} focusPoint={focusPoint} />
                 </div>
               </div>
             </div>

@@ -26,7 +26,7 @@ const MARKER_COLORS: Record<string, string> = {
   "amenity-dining": "#F97316",
 };
 
-type LayerCategory = "hda" | "da" | "cdc" | "cc" | "amenities";
+type LayerCategory = "hda" | "da" | "cdc" | "cc" | "ssda" | "amenities";
 
 if (typeof document !== "undefined") {
   const id = "leaflet-pulse-style";
@@ -74,7 +74,7 @@ export default function PlanningMapInner({
   const layerGroupRef = useRef<L.LayerGroup | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const [activeLayers, setActiveLayers] = useState<Record<LayerCategory, boolean>>({
-    hda: true, da: true, cdc: true, cc: true, amenities: true,
+    hda: true, da: true, cdc: true, cc: true, ssda: true, amenities: true,
   });
   const [satellite, setSatellite] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -242,6 +242,7 @@ export default function PlanningMapInner({
         const isDA = colorKey.startsWith("da-");
         const isCDC = colorKey.startsWith("cdc-");
         const isCC = colorKey.startsWith("cc-");
+        const isSSDA = colorKey === "ssda";
         const isAmenity = colorKey.startsWith("amenity-");
 
         // Skip if layer is hidden
@@ -249,6 +250,7 @@ export default function PlanningMapInner({
         if (isDA && !activeLayers.da) return;
         if (isCDC && !activeLayers.cdc) return;
         if (isCC && !activeLayers.cc) return;
+        if (isSSDA && !activeLayers.ssda) return;
         if (isAmenity && !activeLayers.amenities) return;
 
         hasExtras = true;
@@ -325,6 +327,7 @@ export default function PlanningMapInner({
     { key: "da", label: "DA", color: "#FBBF24" },
     { key: "cdc", label: "CDC", color: "#A78BFA" },
     { key: "cc", label: "CC", color: "#14B8A6" },
+    { key: "ssda", label: "SSDA", color: "#6366F1" },
     { key: "amenities", label: "Amenities", color: "#22C55E" },
   ];
 
@@ -335,6 +338,7 @@ export default function PlanningMapInner({
     { shape: "circle", size: 8, color: "#38BDF8", label: "DA Determined" },
     { shape: "circle", size: 8, color: "#A78BFA", label: "CDC" },
     { shape: "circle", size: 8, color: "#14B8A6", label: "CC" },
+    { shape: "circle", size: 8, color: "#6366F1", label: "SSDA" },
     { shape: "square", size: 7, color: "#3B82F6", label: "Train" },
     { shape: "square", size: 7, color: "#22C55E", label: "Park" },
     { shape: "square", size: 7, color: "#EC4899", label: "Shops" },

@@ -21,7 +21,8 @@ export async function GET(req: NextRequest) {
   }
 
   const { data: { user } } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
-  if (!user || user.email !== process.env.ADMIN_EMAIL) {
+  const adminEmails = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || "").split(",").map(e => e.trim().toLowerCase());
+  if (!user || !adminEmails.includes(user.email?.toLowerCase() || "")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -48,7 +49,8 @@ export async function POST(req: NextRequest) {
   }
 
   const { data: { user } } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
-  if (!user || user.email !== process.env.ADMIN_EMAIL) {
+  const adminEmails = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || "").split(",").map(e => e.trim().toLowerCase());
+  if (!user || !adminEmails.includes(user.email?.toLowerCase() || "")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

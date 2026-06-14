@@ -21,9 +21,10 @@ interface Props {
   searchHistory?: SearchHistoryEntry[];
   onHistoryClick?: (entry: SearchHistoryEntry) => void;
   compact?: boolean;
+  placeholder?: string;
 }
 
-export default function SearchBar({ onSelect, searchHistory, onHistoryClick, compact }: Props) {
+export default function SearchBar({ onSelect, searchHistory, onHistoryClick, compact, placeholder }: Props) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<GeoResult[]>([]);
   const [open, setOpen] = useState(false);
@@ -80,7 +81,7 @@ export default function SearchBar({ onSelect, searchHistory, onHistoryClick, com
           ref={inputRef}
           className={`bg-transparent outline-none w-full ${compact ? "text-sm" : "text-lg"} placeholder:text-[var(--text-muted)]`}
           style={{ color: "var(--text-primary)" }}
-          placeholder="Search any NSW address..."
+          placeholder={placeholder || "Search any NSW address..."}
           value={q}
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={handleFocus}

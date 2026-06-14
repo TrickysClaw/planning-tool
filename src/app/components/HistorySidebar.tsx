@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { History, X, MapPin, Clock, ChevronRight, RotateCw } from "lucide-react";
+import { History, X, MapPin, Clock, ChevronRight, RotateCw, ArrowLeftRight, Check } from "lucide-react";
 
 interface SearchEntry {
   id: string;
@@ -24,12 +25,17 @@ interface HistorySidebarProps {
 }
 
 export default function HistorySidebar({ open, onClose, onSelect }: HistorySidebarProps) {
+  const router = useRouter();
   const [searches, setSearches] = useState<SearchEntry[]>([]);
   const [loading, setLoading] = useState(false);
+  const [compareMode, setCompareMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (open) {
       setLoading(true);
+      setCompareMode(false);
+      setSelected(new Set());
       fetch("/api/searches?limit=30")
         .then((r) => r.json())
         .then((data) => setSearches(data.searches || []))
@@ -53,7 +59,26 @@ export default function HistorySidebar({ open, onClose, onSelect }: HistorySideb
   }
 
   function handleClick(entry: SearchEntry) {
-    onSelect({ address: entry.address, lat: entry.lat, lng: entry.lng });
+    if (compareMode) {
+      const next = new Set(selected);
+      if (next.has(entry.id)) {
+        next.delete(entry.id);
+      } else if (next.size < 2) {
+        next.add(entry.id);
+      }
+      setSelected(next);
+    } else {
+      onSelect({ address: entry.address, lat: entry.lat, lng: entry.lng });
+      onClose();
+    }
+  }
+
+  function handleCompare() {
+    const entries = searches.filter((s) => selected.has(s.id));
+    if (entries.length !== 2) return;
+    const [a, b] = entries;
+    const url = `/compare?latA=${a.lat}&lngA=${a.lng}&qA=${encodeURIComponent(a.address)}&latB=${b.lat}&lngB=${b.lng}&qB=${encodeURIComponent(b.address)}`;
+    router.push(url);
     onClose();
   }
 
@@ -113,55 +138,115 @@ export default function HistorySidebar({ open, onClose, onSelect }: HistorySideb
               )}
 
               {!loading && searches.length > 0 && (
-                <ul className="py-2">
-                  {searches.map((entry) => (
-                    <li key={entry.id}>
+                <>
+                  {/* Compare row */}
+                  {!compareMode && searches.length >= 2 && (
+                    <div className="px-4 pt-3 pb-1">
                       <button
-                        onClick={() => handleClick(entry)}
-                        className="w-full text-left px-4 py-3 transition-colors hover:bg-[var(--bg-sunken)] group"
+                        onClick={() => setCompareMode(true)}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium transition-all hover:scale-[1.02]"
+                        style={{ background: "var(--accent-subtle)", border: "1px solid var(--accent-border)", color: "var(--accent)" }}
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                              {entry.address.split(",")[0]}
-                            </p>
-                            <p className="text-xs truncate mt-0.5" style={{ color: "var(--text-muted)" }}>
-                              {entry.address.split(",").slice(1).join(",").trim()}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1.5">
-                              {entry.snapshot?.zone && (
-                                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: "var(--accent-subtle)", color: "var(--accent)" }}>
-                                  {entry.snapshot.zone}
-                                </span>
+                        <ArrowLeftRight size={14} />
+                        Compare Properties
+                        <span className="ml-auto text-[10px] opacity-60">Pick 2</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Compare mode header */}
+                  {compareMode && (
+                    <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+                      <p className="text-xs font-medium" style={{ color: "var(--accent)" }}>
+                        Select 2 properties ({selected.size}/2)
+                      </p>
+                      <button
+                        onClick={() => { setCompareMode(false); setSelected(new Set()); }}
+                        className="text-xs px-2 py-1 rounded-lg transition"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+
+                  <ul className="py-2">
+                    {searches.map((entry) => {
+                      const isSelected = selected.has(entry.id);
+                      return (
+                        <li key={entry.id}>
+                          <button
+                            onClick={() => handleClick(entry)}
+                            className="w-full text-left px-4 py-3 transition-colors hover:bg-[var(--bg-sunken)] group"
+                            style={isSelected ? { background: "var(--accent-subtle)" } : {}}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              {compareMode && (
+                                <div
+                                  className="mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0"
+                                  style={{
+                                    borderColor: isSelected ? "var(--accent)" : "var(--border)",
+                                    background: isSelected ? "var(--accent)" : "transparent",
+                                  }}
+                                >
+                                  {isSelected && <Check size={10} style={{ color: "white" }} />}
+                                </div>
                               )}
-                              <span className="flex items-center gap-1 text-[10px]" style={{ color: "var(--text-muted)" }}>
-                                <Clock size={9} />
-                                {formatDate(entry.searched_at)}
-                              </span>
-                              {entry.search_count > 1 && (
-                                <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                                  · {entry.search_count}x
-                                </span>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                                  {entry.address.split(",")[0]}
+                                </p>
+                                <p className="text-xs truncate mt-0.5" style={{ color: "var(--text-muted)" }}>
+                                  {entry.address.split(",").slice(1).join(",").trim()}
+                                </p>
+                                <div className="flex items-center gap-2 mt-1.5">
+                                  {entry.snapshot?.zone && (
+                                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: "var(--accent-subtle)", color: "var(--accent)" }}>
+                                      {entry.snapshot.zone}
+                                    </span>
+                                  )}
+                                  <span className="flex items-center gap-1 text-[10px]" style={{ color: "var(--text-muted)" }}>
+                                    <Clock size={9} />
+                                    {formatDate(entry.searched_at)}
+                                  </span>
+                                  {entry.search_count > 1 && (
+                                    <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+                                      · {entry.search_count}x
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              {!compareMode && (
+                                <ChevronRight size={14} className="mt-1 opacity-0 group-hover:opacity-60 transition-opacity" style={{ color: "var(--text-muted)" }} />
                               )}
                             </div>
-                          </div>
-                          <ChevronRight size={14} className="mt-1 opacity-0 group-hover:opacity-60 transition-opacity" style={{ color: "var(--text-muted)" }} />
-                        </div>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </>
               )}
             </div>
 
             {/* Footer */}
-            {searches.length > 0 && (
+            {compareMode && selected.size === 2 ? (
+              <div className="px-4 py-3 border-t" style={{ borderColor: "var(--border)" }}>
+                <button
+                  onClick={handleCompare}
+                  className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02]"
+                  style={{ background: "var(--accent)", color: "white" }}
+                >
+                  Compare Selected
+                </button>
+              </div>
+            ) : searches.length > 0 && !compareMode ? (
               <div className="px-4 py-3 border-t text-center" style={{ borderColor: "var(--border)" }}>
                 <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
                   {searches.length} saved {searches.length === 1 ? "search" : "searches"}
                 </p>
               </div>
-            )}
+            ) : null}
           </motion.aside>
         </>
       )}

@@ -11,9 +11,11 @@ import HDACard from "../components/HDACard";
 import NearbyActivityCard from "../components/NearbyActivityCard";
 import PlanningMap from "../components/PlanningMap";
 import type { MapMarker } from "../components/PlanningMap";
-import { BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned, Construction, SlidersHorizontal } from "lucide-react";
+import { BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned, Construction, SlidersHorizontal, History } from "lucide-react";
 import ThemeToggle from "../components/ThemeToggle";
 import Link from "next/link";
+import { buildPropertySnapshot } from "@/lib/types";
+import HistorySidebar from "../components/HistorySidebar";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -190,6 +192,7 @@ function AddressPage() {
   const [loading, setLoading] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [hdaMarkers, setHdaMarkers] = useState<MapMarker[]>([]);
   const [daMarkers, setDaMarkers] = useState<MapMarker[]>([]);
   const [cdcMarkers, setCdcMarkers] = useState<MapMarker[]>([]);
@@ -395,6 +398,22 @@ function AddressPage() {
     });
     setLoading(false);
 
+    // Save curated snapshot to Supabase (fire-and-forget)
+    const snapshot = buildPropertySnapshot(address, lat, lng, {
+      planning, hazard, cadastre,
+      councilName: lga?.councilName || "",
+      perception,
+      da: daData,
+      cdc: cdcData,
+      cc: ccData,
+      hda: hdaProjects,
+    });
+    fetch("/api/searches", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(snapshot),
+    }).catch(() => {}); // silent fail — non-critical
+
     const entry: SearchHistoryEntry = { address, lat, lng, zone, timestamp: Date.now() };
     saveSearchHistory(entry);
     setSearchHistory(getSearchHistory());
@@ -419,9 +438,15 @@ function AddressPage() {
 
   return (
     <main className="min-h-screen">
+      {/* History Sidebar */}
+      <HistorySidebar open={showHistory} onClose={() => setShowHistory(false)} onSelect={(entry) => { handleHistoryClick({ address: entry.address, lat: entry.lat, lng: entry.lng, zone: "", timestamp: 0 }); }} />
+
       {/* Compact top bar with search */}
       <div className="sticky top-0 z-40 backdrop-blur-xl border-b" style={{ background: "var(--bg-elevated)", borderColor: "var(--border)" }}>
         <div className="max-w-[1600px] mx-auto px-4 py-3 flex items-center justify-center gap-4">
+          <button onClick={() => setShowHistory(true)} className="p-2 rounded-lg transition hover:scale-110 shrink-0" style={{ color: "var(--text-muted)" }} title="Search History">
+            <History size={18} />
+          </button>
           <Link href="/" className="font-semibold text-sm shrink-0 transition" style={{ color: "var(--accent)" }}>
             PlanView
           </Link>

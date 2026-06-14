@@ -11,7 +11,7 @@ import HDACard from "../components/HDACard";
 import NearbyActivityCard from "../components/NearbyActivityCard";
 import PlanningMap from "../components/PlanningMap";
 import type { MapMarker } from "../components/PlanningMap";
-import { BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned, Construction, SlidersHorizontal, History } from "lucide-react";
+import { BookOpen, X, Building2, Ruler, BarChart3, Maximize2, Shield, Flame, Droplets, Landmark, Mountain, FlaskConical, MapPinned, History } from "lucide-react";
 import ThemeToggle from "../components/ThemeToggle";
 import Link from "next/link";
 import { buildPropertySnapshot } from "@/lib/types";
@@ -453,14 +453,7 @@ function AddressPage() {
           <div className="flex-1 max-w-2xl">
             <SearchBar compact onSelect={handleSelect} searchHistory={searchHistory} onHistoryClick={handleHistoryClick} />
           </div>
-          <Link href="/search" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition shrink-0" style={{ color: "var(--text-muted)" }}>
-            <SlidersHorizontal size={14} />
-            <span className="hidden sm:inline">Site Search</span>
-          </Link>
-          <Link href="/ssda" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition shrink-0" style={{ color: "var(--text-muted)" }}>
-            <Construction size={14} />
-            <span className="hidden sm:inline">Major Projects</span>
-          </Link>
+
           <ThemeToggle />
         </div>
       </div>

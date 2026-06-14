@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import SearchBar from "./components/SearchBar";
 import ThemeToggle from "./components/ThemeToggle";
-import { Search, Construction, SlidersHorizontal, LogOut, Shield } from "lucide-react";
+import { Search, LogOut, Shield } from "lucide-react";
 import Link from "next/link";
 import { createBrowserClient } from "@/lib/supabase";
 
@@ -65,16 +65,7 @@ export default function Home() {
               <Search size={14} />
               <span className="hidden sm:inline">Home</span>
             </span>
-            <Link href="/search" className="flex items-center gap-1.5 px-2.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition" style={{ color: "var(--text-muted)" }}>
-              <SlidersHorizontal size={14} />
-              <span className="hidden sm:inline">Site Search</span>
-              <span className="hidden sm:inline text-[10px] font-medium uppercase tracking-wider ml-1 opacity-50">beta</span>
-            </Link>
-            <Link href="/ssda" className="flex items-center gap-1.5 px-2.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition" style={{ color: "var(--text-muted)" }}>
-              <Construction size={14} />
-              <span className="hidden sm:inline">Major Projects</span>
-              <span className="hidden sm:inline text-[10px] font-medium uppercase tracking-wider ml-1 opacity-50">beta</span>
-            </Link>
+
           </div>
           <div className="flex items-center gap-1.5 ml-2">
             {userEmail === process.env.NEXT_PUBLIC_ADMIN_EMAIL && (

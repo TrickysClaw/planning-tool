@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
+import { useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -36,7 +36,6 @@ function ComparePage() {
   const router = useRouter();
   const propA = usePropertyData();
   const propB = usePropertyData();
-  const [mobileView, setMobileView] = useState<"slider" | "a" | "b" | "compare">("slider");
 
   // Load from URL params
   useEffect(() => {
@@ -161,52 +160,21 @@ function ComparePage() {
 
           {/* Compare view */}
           {bothLoaded && !eitherLoading && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              {/* Mobile toggle */}
-              <div className="flex md:hidden items-center justify-center gap-1 mb-4 p-1 rounded-xl" style={{ background: "var(--bg-sunken)", border: "1px solid var(--border)" }}>
-                {(["a", "slider", "b", "compare"] as const).map((view) => (
-                  <button
-                    key={view}
-                    onClick={() => setMobileView(view)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium transition"
-                    style={{
-                      background: mobileView === view ? "var(--accent-subtle)" : "transparent",
-                      color: mobileView === view ? "var(--accent)" : "var(--text-muted)",
-                    }}
-                  >
-                    {view === "a" ? "Prop A" : view === "b" ? "Prop B" : view === "slider" ? "Slider" : "AI Compare"}
-                  </button>
-                ))}
-              </div>
-
-              {/* Slider view (desktop always, mobile conditional) */}
-              <div className={mobileView === "a" || mobileView === "b" ? "hidden md:block" : mobileView === "compare" ? "hidden md:block" : ""}>
-                <CompareSlider
-                  leftLabel={propA.data!.address.split(",")[0]}
-                  rightLabel={propB.data!.address.split(",")[0]}
-                  leftContent={
-                    <PropertyPanel data={propA.data!} coords={propA.coords!} />
-                  }
-                  rightContent={
-                    <PropertyPanel data={propB.data!} coords={propB.coords!} />
-                  }
-                />
-              </div>
-
-              {/* Mobile single property view */}
-              {mobileView === "a" && (
-                <div className="md:hidden border-l-4" style={{ borderColor: "#3B82F6" }}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.10 }}>
+              {/* Property tabs */}
+              <CompareSlider
+                leftLabel={propA.data!.address.split(",")[0]}
+                rightLabel={propB.data!.address.split(",")[0]}
+                leftContent={
                   <PropertyPanel data={propA.data!} coords={propA.coords!} />
-                </div>
-              )}
-              {mobileView === "b" && (
-                <div className="md:hidden border-l-4" style={{ borderColor: "#F59E0B" }}>
+                }
+                rightContent={
                   <PropertyPanel data={propB.data!} coords={propB.coords!} />
-                </div>
-              )}
+                }
+              />
 
               {/* Comparative AI Insights */}
-              <div className={`mt-6 ${mobileView !== "compare" ? "hidden md:block" : ""}`}>
+              <div className="mt-6">
                 <CompareInsightsCard
                   addressA={propA.data!.address}
                   addressB={propB.data!.address}

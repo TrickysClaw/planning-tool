@@ -120,7 +120,7 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
 
   if (loading) {
     return (
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
         className="glass-card">
         <div className="flex items-center gap-2 mb-4">
           <Users size={20} style={{ color: "var(--accent)" }} />
@@ -136,7 +136,7 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
 
   if (error || !perception) {
     return (
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
         className="glass-card">
         <div className="flex items-center gap-2 mb-3">
           <Users size={20} style={{ color: "var(--accent)" }} />
@@ -153,7 +153,7 @@ export default function PerceptionCard({ address, lat, lng, initialData }: { add
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
       className="glass-card">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">

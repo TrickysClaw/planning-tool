@@ -109,7 +109,7 @@ export default function HDACard({
 
   if (loading) {
     return (
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
         className="glass-card">
         <div className="flex items-center gap-2 mb-3">
           <Building2 size={20} style={{ color: "var(--accent)" }} />
@@ -124,7 +124,7 @@ export default function HDACard({
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
       className="glass-card">
       <div className="flex items-center gap-2 mb-2">
         <Building2 size={20} style={{ color: "var(--accent)" }} />

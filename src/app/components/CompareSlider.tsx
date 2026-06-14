@@ -1,6 +1,5 @@
 "use client";
-import { useState, useRef, useCallback, useEffect } from "react";
-import { GripVertical } from "lucide-react";
+import { useRef, useState } from "react";
 
 interface CompareSliderProps {
   leftContent: React.ReactNode;
@@ -9,113 +8,82 @@ interface CompareSliderProps {
   rightLabel?: string;
 }
 
+const COLOR_A = "#3B82F6";
+const COLOR_B = "#F59E0B";
+
 export default function CompareSlider({ leftContent, rightContent, leftLabel = "Property A", rightLabel = "Property B" }: CompareSliderProps) {
-  const [position, setPosition] = useState(50);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const dragging = useRef(false);
+  const [activeTab, setActiveTab] = useState<"A" | "B">("A");
+  const [direction, setDirection] = useState<"left" | "right">("left");
+  const contentRef = useRef<HTMLDivElement>(null);
 
-  const handleMove = useCallback((clientX: number) => {
-    if (!containerRef.current || !dragging.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const pct = Math.max(10, Math.min(90, (x / rect.width) * 100));
-    setPosition(pct);
-  }, []);
-
-  const handleMouseDown = useCallback(() => {
-    dragging.current = true;
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-  }, []);
-
-  const handleMouseUp = useCallback(() => {
-    dragging.current = false;
-    document.body.style.cursor = "";
-    document.body.style.userSelect = "";
-  }, []);
-
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => handleMove(e.clientX);
-    const onTouchMove = (e: TouchEvent) => handleMove(e.touches[0].clientX);
-    const onUp = () => handleMouseUp();
-
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp);
-    document.addEventListener("touchmove", onTouchMove);
-    document.addEventListener("touchend", onUp);
-
-    return () => {
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseup", onUp);
-      document.removeEventListener("touchmove", onTouchMove);
-      document.removeEventListener("touchend", onUp);
-    };
-  }, [handleMove, handleMouseUp]);
+  const switchTab = (tab: "A" | "B") => {
+    if (tab === activeTab) return;
+    setDirection(tab === "B" ? "left" : "right");
+    setActiveTab(tab);
+  };
 
   return (
-    <div className="relative w-full" ref={containerRef}>
-      {/* Labels */}
-      <div className="flex items-center justify-between mb-3 px-1">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: "#3B82F620", color: "#3B82F6" }}>A</span>
-          <span className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>{leftLabel}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>{rightLabel}</span>
-          <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: "#F59E0B20", color: "#F59E0B" }}>B</span>
+    <div className="w-full">
+      {/* Tab bar */}
+      <div className="flex items-center gap-0 rounded-lg overflow-hidden mb-4" style={{ border: "1px solid var(--border)" }}>
+        <button
+          onClick={() => switchTab("A")}
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-all hover:opacity-90"
+          style={{
+            background: activeTab === "A" ? `${COLOR_A}15` : "var(--bg-sunken)",
+            color: activeTab === "A" ? COLOR_A : "var(--text-muted)",
+            borderBottom: activeTab === "A" ? `2px solid ${COLOR_A}` : "2px solid transparent",
+          }}
+        >
+          <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: `${COLOR_A}20`, color: COLOR_A }}>A</span>
+          <span className="truncate">{leftLabel}</span>
+        </button>
+        <div style={{ width: 1, background: "var(--border)", alignSelf: "stretch" }} />
+        <button
+          onClick={() => switchTab("B")}
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-all hover:opacity-90"
+          style={{
+            background: activeTab === "B" ? `${COLOR_B}15` : "var(--bg-sunken)",
+            color: activeTab === "B" ? COLOR_B : "var(--text-muted)",
+            borderBottom: activeTab === "B" ? `2px solid ${COLOR_B}` : "2px solid transparent",
+          }}
+        >
+          <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: `${COLOR_B}20`, color: COLOR_B }}>B</span>
+          <span className="truncate">{rightLabel}</span>
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+        <div
+          ref={contentRef}
+          key={activeTab}
+          className="border-l-4 border-r-4 animate-slide-in"
+          style={{
+            borderLeftColor: activeTab === "A" ? COLOR_A : "transparent",
+            borderRightColor: activeTab === "B" ? COLOR_B : "transparent",
+            "--slide-from": direction === "left" ? "30px" : "-30px",
+          } as React.CSSProperties}
+        >
+          {activeTab === "A" ? leftContent : rightContent}
         </div>
       </div>
 
-      {/* Slider container */}
-      <div className="relative overflow-hidden rounded-2xl" style={{ border: "1px solid var(--border)" }}>
-        {/* Left (Property A) */}
-        <div
-          className="w-full"
-          style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
-        >
-          <div className="border-l-4" style={{ borderColor: "#3B82F6" }}>
-            {leftContent}
-          </div>
-        </div>
-
-        {/* Right (Property B) — absolutely positioned on top */}
-        <div
-          className="absolute inset-0 w-full"
-          style={{ clipPath: `inset(0 0 0 ${position}%)` }}
-        >
-          <div className="border-l-4" style={{ borderColor: "#F59E0B" }}>
-            {rightContent}
-          </div>
-        </div>
-
-        {/* Slider handle */}
-        <div
-          className="absolute top-0 bottom-0 z-30 flex items-center justify-center"
-          style={{ left: `${position}%`, transform: "translateX(-50%)" }}
-        >
-          <div
-            className="h-full w-1 relative cursor-col-resize group"
-            style={{ background: "var(--border)" }}
-            onMouseDown={handleMouseDown}
-            onTouchStart={handleMouseDown}
-          >
-            {/* Handle grip */}
-            <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-12 rounded-lg flex items-center justify-center shadow-lg transition-transform group-hover:scale-110"
-              style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}
-            >
-              <GripVertical size={16} style={{ color: "var(--text-muted)" }} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Position indicator */}
-      <div className="flex justify-center mt-2">
-        <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-          {Math.round(position)}% / {Math.round(100 - position)}%
-        </span>
-      </div>
+      <style jsx>{`
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateX(var(--slide-from));
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        .animate-slide-in {
+          animation: slideIn 0.05s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
